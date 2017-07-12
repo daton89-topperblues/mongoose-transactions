@@ -1,0 +1,23 @@
+{
+  "name": "mongoose-transactions",
+  "version": "1.0.0",
+  "description": "Atomicity and Transactions for mongoose",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/topperblues/mongoose-transactions.git"
+  },
+  "keywords": [
+    "mongoose",
+    "transactions"
+  ],
+  "author": "Nicola Bonavita @topperblues, Antonio D'Angelo @daton89",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/topperblues/mongoose-transactions/issues"
+  },
+  "homepage": "https://github.com/topperblues/mongoose-transactions#readme"
+}
