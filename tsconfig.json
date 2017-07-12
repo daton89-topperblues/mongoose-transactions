@@ -2,6 +2,12 @@
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
+        "moduleResolution": "node",
+        "outDir": "dist",
+        "types": [
+            "node",
+            "jest"
+        ],
         "sourceMap": true
     }
 }
