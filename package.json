@@ -23,5 +23,8 @@
   "dependencies": {
     "bluebird": "^3.5.0",
     "mongoose": "^4.11.1"
+  },
+  "devDependencies": {
+    "typescript": "^2.4.1"
   }
 }
