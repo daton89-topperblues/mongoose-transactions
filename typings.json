@@ -2,5 +2,8 @@
   "name": "mongoose-transactions",
   "dependencies": {
     "mongoose": "registry:npm/mongoose#4.3.5+20160628072220"
+  },
+  "globalDependencies": {
+    "jest": "registry:dt/jest#19.2.0+20170312200138"
   }
 }
