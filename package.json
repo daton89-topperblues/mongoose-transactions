@@ -4,7 +4,9 @@
   "description": "Atomicity and Transactions for mongoose",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "tslint -c tslint.json 'src/**/*.{ts}'",
+    "pretest": "npm run lint",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -25,6 +27,20 @@
     "mongoose": "^4.11.1"
   },
   "devDependencies": {
+    "@types/jest": "^20.0.2",
+    "jest": "^20.0.4",
+    "ts-jest": "^20.0.7",
     "typescript": "^2.4.1"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "/__tests__/.*\\.(ts|tsx|js)$"
   }
 }
