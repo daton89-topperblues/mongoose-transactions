@@ -2,7 +2,7 @@ import * as mongoose from "mongoose";
 
 
 /** Class representing a transaction. */
-class Transaction {
+export default class Transaction {
 
     /** The actions to execute on mongoose collections when transaction run is called */
     transactions: Array<{
@@ -27,7 +27,7 @@ class Transaction {
    * Create a transaction.
    * @param parameters - The parameters
    */
-    constructor(parameters) {
+    constructor() {
 
     }
 
