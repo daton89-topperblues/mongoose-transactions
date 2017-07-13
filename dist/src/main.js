@@ -164,7 +164,10 @@ var Transaction = (function () {
                         break;
                 }
             });
-            Promise.all(deferredQueries)
+            return Promise.all(deferredQueries)
+                .then(function (data) {
+                data;
+            })
                 .catch(function (err) {
                 _this.rollback(err);
             });
@@ -244,7 +247,7 @@ var Transaction = (function () {
                         break;
                 }
             });
-            Promise.all(deferredQueries)
+            return Promise.all(deferredQueries)
                 .then(function (data) {
             })
                 .catch(function (err) {

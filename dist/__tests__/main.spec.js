@@ -98,10 +98,13 @@ describe('Transaction run function', function () {
                     type = "insert";
                     rollbackType = "remove";
                     transaction.insert(modelName, data);
-                    transaction.run();
-                    return [4 /*yield*/, Person.findOne(data).exec()];
+                    return [4 /*yield*/, transaction.run()];
                 case 1:
+                    _a.sent();
+                    return [4 /*yield*/, Person.findOne(data).exec()];
+                case 2:
                     bob = _a.sent();
+                    console.log('bob =>', bob);
                     expect(bob.name).toEqual(data.name);
                     expect(bob.age).toEqual(data.age);
                     return [2 /*return*/];

@@ -34,7 +34,7 @@ export default class Transaction {
     /**
      * Clean the transactions object to begin a new transaction on the same instance.
      */
-    clean(){
+    clean() {
         this.transactions = [];
     }
 
@@ -71,7 +71,7 @@ export default class Transaction {
 
 
         this.transactions.push(transactionObj);
-        
+
     }
 
     /**
@@ -90,7 +90,7 @@ export default class Transaction {
    */
     async update(modelName, findObj, data, options = {}) {
         const model = mongoose.model(modelName);
-        const oldModels = await model.find(findObj).exec();        
+        const oldModels = await model.find(findObj).exec();
         const transactionObj = {
             type: "update",
             rollbackType: "update",
@@ -146,7 +146,10 @@ export default class Transaction {
                         break;
                 }
             })
-            Promise.all(deferredQueries)
+            return Promise.all(deferredQueries)
+                .then(data => {
+                    data
+                })
                 .catch(err => {
                     this.rollback(err)
                 })
@@ -225,7 +228,7 @@ export default class Transaction {
                         break;
                 }
             })
-            Promise.all(deferredQueries)
+            return Promise.all(deferredQueries)
                 .then(data => {
 
                 })

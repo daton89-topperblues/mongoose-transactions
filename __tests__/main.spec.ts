@@ -58,9 +58,11 @@ describe('Transaction run function', () => {
 
         transaction.insert(modelName, data)
 
-        transaction.run()
+        await transaction.run()
 
         let bob: any = await Person.findOne(data).exec()
+
+        console.log('bob =>', bob);
 
         expect(bob.name).toEqual(data.name)
 
