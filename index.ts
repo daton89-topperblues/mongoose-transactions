@@ -1,36 +1,24 @@
 import * as mongoose from "mongoose";
 
+
 /** Class representing a transaction. */
 class Transaction {
-    /** The states of mongoose collections before run transaction, used for rollback */
-    states: Array<{
-        /** The executed transaction type */
-        originalType: string,
-        /** The transaction type to execute for rollback */        
-        rollbackType: string,
-        /** The mongoose model instance */                
-        model: any,
-        /** The mongoose model name */                        
-        modelName: string,
-        /** The mongoose model instance before transaction if exists */                
-        oldModels: any,
-        /** The object ... */                                
-        findObj: object,
-        /** The array of data ... */                                        
-        data: any
-    }> = [];
 
     /** The actions to execute on mongoose collections when transaction run is called */
     transactions: Array<{
-        /** The transaction type to run */   
+        /** The transaction type to run */
         type: string,
-        /** The mongoose model instance */                
+        /** The transaction type to execute for rollback */
+        rollbackType: string,
+        /** The mongoose model instance */
         model: any,
-        /** The mongoose model name */                        
+        /** The mongoose model name */
         modelName: string,
-        /** The object ... */                                
+        /** The mongoose model instance before transaction if exists */
+        oldModels: any,
+        /** The object ... */
         findObj: object,
-        /** The array of data ... */                                        
+        /** The array of data ... */
         data: any
     }> = [];
 
@@ -66,22 +54,16 @@ class Transaction {
         }
         const transactionObj = {
             type: "insert",
-            model: model,
-            modelName: modelName,
-            findObj: {},
-            data: data
-        };
-        const stateObj = {
-            originalType: "insert",
             rollbackType: "remove",
             model: model,
             modelName: modelName,
-            oldModels:null,
+            oldModels: null,
             findObj: {},
-            data: {}
+            data: data
         };
+
         this.transactions.push(transactionObj);
-        this.states.push(stateObj);
+
     }
 
     /**
@@ -89,28 +71,30 @@ class Transaction {
    * @param modelName - The string containing the mongoose model name.
    * @param findObj - The object containing data to find mongoose collection.
    * @param dataObj - The object containing data to update into mongoose model.
+   * @param options - The object containing the options for update query:
+   *                     safe (boolean) safe mode (defaults to value set in schema (true))
+   *                     upsert (boolean) whether to create the doc if it doesn't match (false)
+   *                     multi (boolean) whether multiple documents should be updated (false)
+   *                     runValidators: if true, runs update validators on this command. Update validators validate the update operation against the model's schema.
+   *                     setDefaultsOnInsert: if this and upsert are true, mongoose will apply the defaults specified in the model's schema if a new document is created. This option only works on MongoDB >= 2.4 because it relies on MongoDB's $setOnInsert operator.
+   *                     strict (boolean) overrides the strict option for this update
+   *                     overwrite (boolean) disables update-only mode, allowing you to overwrite the doc (false)
    */
-    update(modelName, findObj, data) {
+    update(modelName, findObj, data, options = {}) {
         const model = mongoose.model(modelName);
         const oldModels = model.find(findObj);
         const transactionObj = {
-            type: "findOneAndUpdate",
+            type: "update",
+            rollbackType: "update",
             model: model,
             modelName: modelName,
+            oldModels: oldModels,
             findObj: findObj,
             data: data
         };
-        const stateObj = {
-            originalType: "findOneAndUpdate",
-            rollbackType: "findOneAndUpdate",
-            model: model,
-            modelName: modelName,
-            oldModels:oldModels,
-            findObj: findObj,
-            data: data
-        };
+
         this.transactions.push(transactionObj);
-        this.states.push(stateObj);
+
     }
 
     /**
@@ -123,36 +107,129 @@ class Transaction {
         const oldModels = model.findOne(findObj);
         const transactionObj = {
             type: "remove",
-            model: model,
-            modelName: modelName,
-            findObj: findObj,
-            data: null
-        };
-        const stateObj = {
-            originalType: "remove",
             rollbackType: "insert",
             model: model,
             modelName: modelName,
-            oldModels:oldModels,
+            oldModels: oldModels,
             findObj: findObj,
             data: null
         };
+
         this.transactions.push(transactionObj);
-        this.states.push(stateObj);
+
     }
 
     /**
    * Run the transaction and check errors.
    */
     run() {
+        const deferredQueries = []
+        try {
+            this.transactions.forEach(transaction => {
+                switch (transaction.type) {
+                    case "insert":
+                        deferredQueries.push(this.insertTransaction(transaction.model, transaction.data))
+                        break;
+                    case "update":
+                        deferredQueries.push(this.updateTransaction(transaction.model, transaction.findObj, transaction.data))
+                        break;
+                    case "remove":
+                        deferredQueries.push(this.removeTransaction(transaction.model, transaction.findObj))
+                        break;
+                }
+            })
+            Promise.all(deferredQueries)
+                .then(data => {
 
+                })
+                .catch(err => {
+                    this.rollback(err)
+                })
+        } catch (err) {
+            this.rollback(err)
+        }
+    }
+
+    private insertTransaction(model, data) {
+        return new Promise(function (resolve, reject) {
+            model.create(data, function (err, data) {
+                if (err) {
+                    return reject(err)
+                } else {
+                    return resolve(data)
+                }
+            });
+        });
+    }
+
+    private updateTransaction(model, find, data) {
+        return new Promise(function (resolve, reject) {
+            model.update(find, data, function (err, data) {
+                if (err) {
+                    return reject(err)
+                } else {
+                    return resolve(data)
+                }
+            });
+        });
+    }
+
+    private removeTransaction(model, find) {
+        return new Promise(function (resolve, reject) {
+            model.remove(find, function (err, data) {
+                if (err) {
+                    return reject(err)
+                } else {
+                    return resolve(data)
+                }
+            });
+        });
     }
 
     /**
    * Rollback the executed transactions if any error occurred.
    */
-    rollback() {
+    rollback(err) {
+        const deferredQueries = []
+        try {
+            this.transactions.forEach(transaction => {
+                switch (transaction.type) {
+                    case "insert":
+                        //Rollback remove with insert
+                        transaction.oldModels.forEach(oldModel => {
+                            deferredQueries.push(this.insertTransaction(transaction.model, oldModel))
+                        })
+                        break;
+                    case "update":
+                        //Rollback update with update
+                        transaction.oldModels.forEach(oldModel => {
+                            const find = {
+                                _id: oldModel._id
+                            }
+                            deferredQueries.push(this.updateTransaction(transaction.model, find, oldModel))
+                        })
+                        break;
+                    case "remove":
+                        //Rollback insert with remove
+                        transaction.oldModels.forEach(oldModel => {
+                            const find = {
+                                _id: oldModel._id
+                            }
+                            deferredQueries.push(this.removeTransaction(transaction.model, find))
+                        })
+                        break;
+                }
+            })
+            Promise.all(deferredQueries)
+                .then(data => {
 
+                })
+                .catch(err => {
+                    
+                })
+        } catch (err) {
+            
+        }
     }
 
 }
