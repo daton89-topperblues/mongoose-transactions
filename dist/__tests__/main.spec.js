@@ -85,56 +85,45 @@ describe('Transaction run function', function () {
             }
         });
     }); });
-    test('transaction insert function', function () { return __awaiter(_this, void 0, void 0, function () {
-        var data, modelName, type, rollbackType;
+    test('transaction run insert', function () { return __awaiter(_this, void 0, void 0, function () {
+        var data, modelName, type, rollbackType, bob;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    data = {};
+                    data = {
+                        name: 'Bob',
+                        age: 32
+                    };
                     modelName = "Person";
                     type = "insert";
                     rollbackType = "remove";
-                    return [4 /*yield*/, transaction.insert(modelName, data)];
+                    transaction.insert(modelName, data);
+                    transaction.run();
+                    return [4 /*yield*/, Person.findOne(data).exec()];
                 case 1:
-                    _a.sent();
-                    expect(transaction.transactions[0].type).toBe(type);
-                    expect(transaction.transactions[0].rollbackType).toBe(rollbackType);
-                    expect(transaction.transactions[0].model).toEqual(mongoose.model('Person'));
-                    expect(transaction.transactions[0].modelName).toBe(modelName);
-                    expect(transaction.transactions[0].oldModels).toBeNull();
-                    expect(transaction.transactions[0].findObj).toEqual({});
-                    expect(transaction.transactions[0].data).toEqual([data]);
+                    bob = _a.sent();
+                    expect(bob.name).toEqual(data.name);
+                    expect(bob.age).toEqual(data.age);
                     return [2 /*return*/];
             }
         });
     }); });
-    test('transaction update function', function () { return __awaiter(_this, void 0, void 0, function () {
-        var data, modelName, type, rollbackType, oldModel, find;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    data = { age: 23 };
-                    modelName = "Person";
-                    type = "update";
-                    rollbackType = "update";
-                    oldModel = { name: 'Toni', age: 22 };
-                    find = { age: 22 };
-                    return [4 /*yield*/, Person.create(oldModel)];
-                case 1:
-                    _a.sent();
-                    return [4 /*yield*/, transaction.update(modelName, find, data)];
-                case 2:
-                    _a.sent();
-                    expect(transaction.transactions[0].type).toBe(type);
-                    expect(transaction.transactions[0].rollbackType).toBe(rollbackType);
-                    expect(transaction.transactions[0].model).toEqual(mongoose.model('Person'));
-                    expect(transaction.transactions[0].modelName).toBe(modelName);
-                    expect(transaction.transactions[0].oldModels).toEqual([oldModel]);
-                    expect(transaction.transactions[0].findObj).toEqual(find);
-                    expect(transaction.transactions[0].data).toEqual([data]);
-                    return [2 /*return*/];
-            }
-        });
-    }); });
+    // test('transaction update function', async () => {
+    //     const data: any = { age:23 }
+    //     const modelName: string = "Person"
+    //     const type: string = "update"
+    //     const rollbackType: string = "update"
+    //     const oldModel:any = { name: 'Toni', age: 22 }
+    //     const find:any = { age: 22 }
+    //     await Person.create(oldModel)
+    //     await transaction.update(modelName, find, data)
+    //     expect(transaction.transactions[0].type).toBe(type)
+    //     expect(transaction.transactions[0].rollbackType).toBe(rollbackType)
+    //     expect(transaction.transactions[0].model).toEqual(mongoose.model('Person'))
+    //     expect(transaction.transactions[0].modelName).toBe(modelName)
+    //     expect(transaction.transactions[0].oldModels).toEqual([oldModel])
+    //     expect(transaction.transactions[0].findObj).toEqual(find)
+    //     expect(transaction.transactions[0].data).toEqual([data])
+    // });
 });
 //# sourceMappingURL=main.spec.js.map

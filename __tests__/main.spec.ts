@@ -46,49 +46,51 @@ describe('Transaction run function', () => {
     });
 
 
-    test('transaction insert function', async () => {
+    test('transaction run insert', async () => {
 
-        const data: any = {}
+        const data: any = {
+            name: 'Bob',
+            age: 32
+        }
         const modelName: string = "Person"
         const type: string = "insert"
         const rollbackType: string = "remove"
 
-        await transaction.insert(modelName, data)
+        transaction.insert(modelName, data)
 
+        transaction.run()
 
-        expect(transaction.transactions[0].type).toBe(type)
-        expect(transaction.transactions[0].rollbackType).toBe(rollbackType)
-        expect(transaction.transactions[0].model).toEqual(mongoose.model('Person'))
-        expect(transaction.transactions[0].modelName).toBe(modelName)
-        expect(transaction.transactions[0].oldModels).toBeNull()
-        expect(transaction.transactions[0].findObj).toEqual({})
-        expect(transaction.transactions[0].data).toEqual([data])
+        let bob: any = await Person.findOne(data).exec()
 
-    });
+        expect(bob.name).toEqual(data.name)
 
-    test('transaction update function', async () => {
-
-        const data: any = { age:23 }
-        const modelName: string = "Person"
-        const type: string = "update"
-        const rollbackType: string = "update"
-        const oldModel:any = { name: 'Toni', age: 22 }
-        const find:any = { age: 22 }
-
-        await Person.create(oldModel)
-
-        await transaction.update(modelName, find, data)
-
-
-        expect(transaction.transactions[0].type).toBe(type)
-        expect(transaction.transactions[0].rollbackType).toBe(rollbackType)
-        expect(transaction.transactions[0].model).toEqual(mongoose.model('Person'))
-        expect(transaction.transactions[0].modelName).toBe(modelName)
-        expect(transaction.transactions[0].oldModels).toEqual([oldModel])
-        expect(transaction.transactions[0].findObj).toEqual(find)
-        expect(transaction.transactions[0].data).toEqual([data])
+        expect(bob.age).toEqual(data.age)
 
     });
+
+    // test('transaction update function', async () => {
+
+    //     const data: any = { age:23 }
+    //     const modelName: string = "Person"
+    //     const type: string = "update"
+    //     const rollbackType: string = "update"
+    //     const oldModel:any = { name: 'Toni', age: 22 }
+    //     const find:any = { age: 22 }
+
+    //     await Person.create(oldModel)
+
+    //     await transaction.update(modelName, find, data)
+
+
+    //     expect(transaction.transactions[0].type).toBe(type)
+    //     expect(transaction.transactions[0].rollbackType).toBe(rollbackType)
+    //     expect(transaction.transactions[0].model).toEqual(mongoose.model('Person'))
+    //     expect(transaction.transactions[0].modelName).toBe(modelName)
+    //     expect(transaction.transactions[0].oldModels).toEqual([oldModel])
+    //     expect(transaction.transactions[0].findObj).toEqual(find)
+    //     expect(transaction.transactions[0].data).toEqual([data])
+
+    // });
 
 
 
