@@ -148,50 +148,16 @@ export default class Transaction {
             })
             return Promise.all(deferredQueries)
                 .then(data => {
-                    data
+                    console.log("Run return data => ", data);
+                    return data
                 })
                 .catch(err => {
+                    console.log("Run error data => ", err);
                     this.rollback(err)
                 })
         } catch (err) {
             this.rollback(err)
         }
-    }
-
-    private insertTransaction(model, data) {
-        return new Promise(function (resolve, reject) {
-            model.create(data, function (err, data) {
-                if (err) {
-                    return reject({ error: err, model: model, object: data })
-                } else {
-                    return resolve(data)
-                }
-            });
-        });
-    }
-
-    private updateTransaction(model, find, data) {
-        return new Promise(function (resolve, reject) {
-            model.update(find, data, function (err, data) {
-                if (err) {
-                    return reject({ error: err, model: model, find: find, object: data })
-                } else {
-                    return resolve(data)
-                }
-            });
-        });
-    }
-
-    private removeTransaction(model, find) {
-        return new Promise(function (resolve, reject) {
-            model.remove(find, function (err, data) {
-                if (err) {
-                    return reject({ error: err, model: model, object: data })
-                } else {
-                    return resolve(data)
-                }
-            });
-        });
     }
 
     /**
@@ -230,14 +196,52 @@ export default class Transaction {
             })
             return Promise.all(deferredQueries)
                 .then(data => {
-
+                    console.log("Rollback return data => ", data);
+                    
                 })
                 .catch(err => {
-
+                    console.log("Rollback error data => ", err);
+                    return err                    
                 })
         } catch (err) {
 
         }
+    }
+
+       private insertTransaction(model, data) {
+        return new Promise(function (resolve, reject) {
+            model.create(data, function (err, data) {
+                if (err) {
+                    return reject({ error: err, model: model, object: data })
+                } else {
+                    return resolve(data)
+                }
+            });
+        });
+    }
+
+    private updateTransaction(model, find, data) {
+        return new Promise(function (resolve, reject) {
+            model.update(find, data, function (err, data) {
+                if (err) {
+                    return reject({ error: err, model: model, find: find, object: data })
+                } else {
+                    return resolve(data)
+                }
+            });
+        });
+    }
+
+    private removeTransaction(model, find) {
+        return new Promise(function (resolve, reject) {
+            model.remove(find, function (err, data) {
+                if (err) {
+                    return reject({ error: err, model: model, object: data })
+                } else {
+                    return resolve(data)
+                }
+            });
+        });
     }
 
 }
