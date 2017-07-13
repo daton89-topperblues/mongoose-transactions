@@ -6,7 +6,8 @@
         "outDir": "dist",
         "types": [
             "node",
-            "jest"
+            "jest",
+            "core-js"
         ],
         "sourceMap": true
     }
