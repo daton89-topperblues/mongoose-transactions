@@ -62,8 +62,6 @@ describe('Transaction run function', () => {
 
         let bob: any = await Person.findOne(data).exec()
 
-        console.log('bob =>', bob);
-
         expect(bob.name).toEqual(data.name)
 
         expect(bob.age).toEqual(data.age)

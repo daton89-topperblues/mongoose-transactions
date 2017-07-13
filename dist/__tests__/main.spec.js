@@ -104,7 +104,6 @@ describe('Transaction run function', function () {
                     return [4 /*yield*/, Person.findOne(data).exec()];
                 case 2:
                     bob = _a.sent();
-                    console.log('bob =>', bob);
                     expect(bob.name).toEqual(data.name);
                     expect(bob.age).toEqual(data.age);
                     return [2 /*return*/];
