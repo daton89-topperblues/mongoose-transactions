@@ -5,7 +5,7 @@ import * as mongoose from "mongoose";
 export default class Transaction {
 
     /** The actions to execute on mongoose collections when transaction run is called */
-    transactions: Array<{
+    private transactions: Array<{
         /** The transaction type to run */
         type: string,
         /** The transaction type to execute for rollback */
@@ -32,6 +32,13 @@ export default class Transaction {
     }
 
     /**
+     * Clean the transactions object to begin a new transaction on the same instance.
+     */
+    clean(){
+        this.transactions = [];
+    }
+
+    /**
      * Create the insert transaction and rollback states.
      * @param modelName - The string containing the mongoose model name.
      * @param data - The object or array containing data to insert into mongoose model.
@@ -41,13 +48,13 @@ export default class Transaction {
         if (data instanceof Array) {
             data.forEach(currentObj => {
                 if (!currentObj._id) {
-                    const id = mongoose.Types.ObjectId().toString();
+                    const id = new mongoose.Types.ObjectId();
                     currentObj._id = id;
                 }
             });
         } else {
             if (!data._id) {
-                const id = mongoose.Types.ObjectId().toString();
+                const id = new mongoose.Types.ObjectId();
                 data._id = id;
             }
             data = [data];
@@ -62,8 +69,9 @@ export default class Transaction {
             data: data
         };
 
-        this.transactions.push(transactionObj);
 
+        this.transactions.push(transactionObj);
+        
     }
 
     /**
@@ -80,9 +88,9 @@ export default class Transaction {
    *                     strict (boolean) overrides the strict option for this update
    *                     overwrite (boolean) disables update-only mode, allowing you to overwrite the doc (false)
    */
-    update(modelName, findObj, data, options = {}) {
+    async update(modelName, findObj, data, options = {}) {
         const model = mongoose.model(modelName);
-        const oldModels = model.find(findObj);
+        const oldModels = await model.find(findObj).exec();        
         const transactionObj = {
             type: "update",
             rollbackType: "update",

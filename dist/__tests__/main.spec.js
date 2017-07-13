@@ -70,72 +70,71 @@ describe('Transaction run function', function () {
             }
         });
     }); });
-    test('Insert Person', function () { return __awaiter(_this, void 0, void 0, function () {
-        var toni;
+    beforeEach(function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, Person.create({ name: 'Toni', age: 22 })];
+                case 0:
+                    transaction.clean();
+                    return [4 /*yield*/, Person.remove({})];
                 case 1:
                     _a.sent();
-                    return [4 /*yield*/, Person.findOne({ name: 'Toni' })];
+                    return [4 /*yield*/, Car.remove({})];
                 case 2:
-                    toni = _a.sent();
-                    expect(toni.name).toBe('Toni');
+                    _a.sent();
                     return [2 /*return*/];
             }
         });
     }); });
-    test('Remove Person', function () { return __awaiter(_this, void 0, void 0, function () {
-        var toni;
+    test('transaction insert function', function () { return __awaiter(_this, void 0, void 0, function () {
+        var data, modelName, type, rollbackType;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, Person.remove({ name: 'Toni' })];
-                case 1:
-                    toni = _a.sent();
-                    expect(toni.result.ok).toBe(1);
-                    return [2 /*return*/];
-            }
-        });
-    }); });
-    test('Insert Car', function () { return __awaiter(_this, void 0, void 0, function () {
-        var opel;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, Car.create({ name: 'Opel', age: 22 })];
+                case 0:
+                    data = {};
+                    modelName = "Person";
+                    type = "insert";
+                    rollbackType = "remove";
+                    return [4 /*yield*/, transaction.insert(modelName, data)];
                 case 1:
                     _a.sent();
-                    return [4 /*yield*/, Car.findOne({ name: 'Opel' })];
-                case 2:
-                    opel = _a.sent();
-                    expect(opel.name).toBe('Opel');
+                    expect(transaction.transactions[0].type).toBe(type);
+                    expect(transaction.transactions[0].rollbackType).toBe(rollbackType);
+                    expect(transaction.transactions[0].model).toEqual(mongoose.model('Person'));
+                    expect(transaction.transactions[0].modelName).toBe(modelName);
+                    expect(transaction.transactions[0].oldModels).toBeNull();
+                    expect(transaction.transactions[0].findObj).toEqual({});
+                    expect(transaction.transactions[0].data).toEqual([data]);
                     return [2 /*return*/];
             }
         });
     }); });
-    test('Remove Car', function () { return __awaiter(_this, void 0, void 0, function () {
-        var opel;
+    test('transaction update function', function () { return __awaiter(_this, void 0, void 0, function () {
+        var data, modelName, type, rollbackType, oldModel, find;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, Car.remove({ name: 'Opel' })];
+                case 0:
+                    data = { age: 23 };
+                    modelName = "Person";
+                    type = "update";
+                    rollbackType = "update";
+                    oldModel = { name: 'Toni', age: 22 };
+                    find = { age: 22 };
+                    return [4 /*yield*/, Person.create(oldModel)];
                 case 1:
-                    opel = _a.sent();
-                    expect(opel.result.ok).toBe(1);
+                    _a.sent();
+                    return [4 /*yield*/, transaction.update(modelName, find, data)];
+                case 2:
+                    _a.sent();
+                    expect(transaction.transactions[0].type).toBe(type);
+                    expect(transaction.transactions[0].rollbackType).toBe(rollbackType);
+                    expect(transaction.transactions[0].model).toEqual(mongoose.model('Person'));
+                    expect(transaction.transactions[0].modelName).toBe(modelName);
+                    expect(transaction.transactions[0].oldModels).toEqual([oldModel]);
+                    expect(transaction.transactions[0].findObj).toEqual(find);
+                    expect(transaction.transactions[0].data).toEqual([data]);
                     return [2 /*return*/];
             }
         });
     }); });
-    // transaction.insert('Person', {
-    //     name: 'Nick',
-    //     age: 33
-    // })
-    // transaction.insert('Person', {
-    //     name: 'Toni',
-    //     age: 28
-    // })
-    // transaction.insert('Car', {
-    //     name: 'Opel',
-    //     age: 1
-    // })
-    // transaction.run()
 });
 //# sourceMappingURL=main.spec.js.map

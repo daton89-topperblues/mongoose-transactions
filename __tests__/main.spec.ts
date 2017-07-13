@@ -39,57 +39,59 @@ describe('Transaction run function', () => {
         await mongoose.connect(`mongodb://localhost/mongoose-transactions`, options);
     });
 
-    test('Insert Person', async () => {
+    beforeEach(async () => {
+        transaction.clean()
+        await Person.remove({});
+        await Car.remove({});
+    });
 
-        await Person.create({ name: 'Toni', age: 22 })
 
-        let toni: any = await Person.findOne({ name: 'Toni' })
+    test('transaction insert function', async () => {
 
-        expect(toni.name).toBe('Toni')
+        const data: any = {}
+        const modelName: string = "Person"
+        const type: string = "insert"
+        const rollbackType: string = "remove"
+
+        await transaction.insert(modelName, data)
+
+
+        expect(transaction.transactions[0].type).toBe(type)
+        expect(transaction.transactions[0].rollbackType).toBe(rollbackType)
+        expect(transaction.transactions[0].model).toEqual(mongoose.model('Person'))
+        expect(transaction.transactions[0].modelName).toBe(modelName)
+        expect(transaction.transactions[0].oldModels).toBeNull()
+        expect(transaction.transactions[0].findObj).toEqual({})
+        expect(transaction.transactions[0].data).toEqual([data])
 
     });
 
-    test('Remove Person', async () => {
+    test('transaction update function', async () => {
 
-        let toni: any = await Person.remove({ name: 'Toni' })
+        const data: any = { age:23 }
+        const modelName: string = "Person"
+        const type: string = "update"
+        const rollbackType: string = "update"
+        const oldModel:any = { name: 'Toni', age: 22 }
+        const find:any = { age: 22 }
 
-        expect(toni.result.ok).toBe(1)
+        await Person.create(oldModel)
 
-    });
+        await transaction.update(modelName, find, data)
 
-    test('Insert Car', async () => {
 
-        await Car.create({ name: 'Opel', age: 22 })
-
-        let opel: any = await Car.findOne({ name: 'Opel' })
-
-        expect(opel.name).toBe('Opel')
-
-    });
-
-    test('Remove Car', async () => {
-
-        let opel: any = await Car.remove({ name: 'Opel' })
-
-        expect(opel.result.ok).toBe(1)
+        expect(transaction.transactions[0].type).toBe(type)
+        expect(transaction.transactions[0].rollbackType).toBe(rollbackType)
+        expect(transaction.transactions[0].model).toEqual(mongoose.model('Person'))
+        expect(transaction.transactions[0].modelName).toBe(modelName)
+        expect(transaction.transactions[0].oldModels).toEqual([oldModel])
+        expect(transaction.transactions[0].findObj).toEqual(find)
+        expect(transaction.transactions[0].data).toEqual([data])
 
     });
 
-    // transaction.insert('Person', {
-    //     name: 'Nick',
-    //     age: 33
-    // })
 
-    // transaction.insert('Person', {
-    //     name: 'Toni',
-    //     age: 28
-    // })
 
-    // transaction.insert('Car', {
-    //     name: 'Opel',
-    //     age: 1
-    // })
 
-    // transaction.run()
 
 })
