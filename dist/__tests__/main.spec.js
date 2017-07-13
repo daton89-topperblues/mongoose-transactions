@@ -85,8 +85,31 @@ describe('Transaction run function', function () {
             }
         });
     }); });
-    test('transaction run insert', function () { return __awaiter(_this, void 0, void 0, function () {
-        var data, modelName, type, rollbackType, bob;
+    test('insert', function () { return __awaiter(_this, void 0, void 0, function () {
+        var data, modelName, bob;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    data = {
+                        name: 'Bob',
+                        age: 32
+                    };
+                    modelName = "Person";
+                    transaction.insert(modelName, data);
+                    return [4 /*yield*/, transaction.run()];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, Person.findOne(data).exec()];
+                case 2:
+                    bob = _a.sent();
+                    expect(bob.name).toBe(data.name);
+                    expect(bob.age).toBe(data.age);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    test('update', function () { return __awaiter(_this, void 0, void 0, function () {
+        var data, modelName, type, rollbackType, update, alice;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -97,35 +120,53 @@ describe('Transaction run function', function () {
                     modelName = "Person";
                     type = "insert";
                     rollbackType = "remove";
+                    update = {
+                        name: 'Alice',
+                        age: 23
+                    };
                     transaction.insert(modelName, data);
+                    transaction.update(modelName, data, update);
                     return [4 /*yield*/, transaction.run()];
                 case 1:
                     _a.sent();
-                    return [4 /*yield*/, Person.findOne(data).exec()];
+                    return [4 /*yield*/, Person.findOne(update).exec()];
                 case 2:
-                    bob = _a.sent();
-                    expect(bob.name).toEqual(data.name);
-                    expect(bob.age).toEqual(data.age);
+                    alice = _a.sent();
+                    expect(alice.name).toBe(update.name);
+                    expect(alice.age).toBe(update.age);
                     return [2 /*return*/];
             }
         });
     }); });
-    // test('transaction update function', async () => {
-    //     const data: any = { age:23 }
-    //     const modelName: string = "Person"
-    //     const type: string = "update"
-    //     const rollbackType: string = "update"
-    //     const oldModel:any = { name: 'Toni', age: 22 }
-    //     const find:any = { age: 22 }
-    //     await Person.create(oldModel)
-    //     await transaction.update(modelName, find, data)
-    //     expect(transaction.transactions[0].type).toBe(type)
-    //     expect(transaction.transactions[0].rollbackType).toBe(rollbackType)
-    //     expect(transaction.transactions[0].model).toEqual(mongoose.model('Person'))
-    //     expect(transaction.transactions[0].modelName).toBe(modelName)
-    //     expect(transaction.transactions[0].oldModels).toEqual([oldModel])
-    //     expect(transaction.transactions[0].findObj).toEqual(find)
-    //     expect(transaction.transactions[0].data).toEqual([data])
-    // });
+    test('remove', function () { return __awaiter(_this, void 0, void 0, function () {
+        var data, modelName, type, rollbackType, update, alice;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    data = {
+                        name: 'Bob',
+                        age: 32
+                    };
+                    modelName = "Person";
+                    type = "insert";
+                    rollbackType = "remove";
+                    update = {
+                        name: 'Alice',
+                        age: 23
+                    };
+                    transaction.insert(modelName, data);
+                    transaction.update(modelName, data, update);
+                    transaction.remove(modelName, update);
+                    return [4 /*yield*/, transaction.run()];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, Person.findOne(update).exec()];
+                case 2:
+                    alice = _a.sent();
+                    expect(alice).toEqual({});
+                    return [2 /*return*/];
+            }
+        });
+    }); });
 });
 //# sourceMappingURL=main.spec.js.map

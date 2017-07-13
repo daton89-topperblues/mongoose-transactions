@@ -46,7 +46,27 @@ describe('Transaction run function', () => {
     });
 
 
-    test('transaction run insert', async () => {
+    test('insert', async () => {
+
+        const data: any = {
+            name: 'Bob',
+            age: 32
+        }
+        const modelName: string = "Person"
+
+        transaction.insert(modelName, data)
+
+        await transaction.run()
+
+        let bob: any = await Person.findOne(data).exec()
+
+        expect(bob.name).toBe(data.name)
+
+        expect(bob.age).toBe(data.age)
+
+    });
+
+    test('update', async () => {
 
         const data: any = {
             name: 'Bob',
@@ -56,44 +76,52 @@ describe('Transaction run function', () => {
         const type: string = "insert"
         const rollbackType: string = "remove"
 
+        const update: any = {
+            name: 'Alice',
+            age: 23
+        }
+
         transaction.insert(modelName, data)
+
+        transaction.update(modelName, data, update)
 
         await transaction.run()
 
-        let bob: any = await Person.findOne(data).exec()
+        let alice: any = await Person.findOne(update).exec()
 
-        expect(bob.name).toEqual(data.name)
+        expect(alice.name).toBe(update.name)
 
-        expect(bob.age).toEqual(data.age)
+        expect(alice.age).toBe(update.age)
 
     });
 
-    // test('transaction update function', async () => {
+    test('remove', async () => {
 
-    //     const data: any = { age:23 }
-    //     const modelName: string = "Person"
-    //     const type: string = "update"
-    //     const rollbackType: string = "update"
-    //     const oldModel:any = { name: 'Toni', age: 22 }
-    //     const find:any = { age: 22 }
+        const data: any = {
+            name: 'Bob',
+            age: 32
+        }
+        const modelName: string = "Person"
+        const type: string = "insert"
+        const rollbackType: string = "remove"
 
-    //     await Person.create(oldModel)
+        const update: any = {
+            name: 'Alice',
+            age: 23
+        }
 
-    //     await transaction.update(modelName, find, data)
+        transaction.insert(modelName, data)
 
+        transaction.update(modelName, data, update)
 
-    //     expect(transaction.transactions[0].type).toBe(type)
-    //     expect(transaction.transactions[0].rollbackType).toBe(rollbackType)
-    //     expect(transaction.transactions[0].model).toEqual(mongoose.model('Person'))
-    //     expect(transaction.transactions[0].modelName).toBe(modelName)
-    //     expect(transaction.transactions[0].oldModels).toEqual([oldModel])
-    //     expect(transaction.transactions[0].findObj).toEqual(find)
-    //     expect(transaction.transactions[0].data).toEqual([data])
+        transaction.remove(modelName, update)
 
-    // });
+        await transaction.run()
 
+        let alice: any = await Person.findOne(update).exec()
 
+        expect(alice).toEqual({})
 
-
+    })
 
 })

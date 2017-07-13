@@ -131,18 +131,29 @@ var Transaction = (function () {
    * @param findObj - The object containing data to find mongoose collection.
    */
     Transaction.prototype.remove = function (modelName, findObj) {
-        var model = mongoose.model(modelName);
-        var oldModels = model.findOne(findObj).exec();
-        var transactionObj = {
-            type: "remove",
-            rollbackType: "insert",
-            model: model,
-            modelName: modelName,
-            oldModels: oldModels,
-            findObj: findObj,
-            data: null
-        };
-        this.transactions.push(transactionObj);
+        return __awaiter(this, void 0, void 0, function () {
+            var model, oldModels, transactionObj;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        model = mongoose.model(modelName);
+                        return [4 /*yield*/, model.findOne(findObj).exec()];
+                    case 1:
+                        oldModels = _a.sent();
+                        transactionObj = {
+                            type: "remove",
+                            rollbackType: "insert",
+                            model: model,
+                            modelName: modelName,
+                            oldModels: oldModels,
+                            findObj: findObj,
+                            data: null
+                        };
+                        this.transactions.push(transactionObj);
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     /**
    * Run the transaction and check errors.
@@ -166,51 +177,17 @@ var Transaction = (function () {
             });
             return Promise.all(deferredQueries)
                 .then(function (data) {
-                data;
+                console.log("Run return data => ", data);
+                return data;
             })
                 .catch(function (err) {
+                console.log("Run error data => ", err);
                 _this.rollback(err);
             });
         }
         catch (err) {
             this.rollback(err);
         }
-    };
-    Transaction.prototype.insertTransaction = function (model, data) {
-        return new Promise(function (resolve, reject) {
-            model.create(data, function (err, data) {
-                if (err) {
-                    return reject({ error: err, model: model, object: data });
-                }
-                else {
-                    return resolve(data);
-                }
-            });
-        });
-    };
-    Transaction.prototype.updateTransaction = function (model, find, data) {
-        return new Promise(function (resolve, reject) {
-            model.update(find, data, function (err, data) {
-                if (err) {
-                    return reject({ error: err, model: model, find: find, object: data });
-                }
-                else {
-                    return resolve(data);
-                }
-            });
-        });
-    };
-    Transaction.prototype.removeTransaction = function (model, find) {
-        return new Promise(function (resolve, reject) {
-            model.remove(find, function (err, data) {
-                if (err) {
-                    return reject({ error: err, model: model, object: data });
-                }
-                else {
-                    return resolve(data);
-                }
-            });
-        });
     };
     /**
    * Rollback the executed transactions if any error occurred.
@@ -249,12 +226,51 @@ var Transaction = (function () {
             });
             return Promise.all(deferredQueries)
                 .then(function (data) {
+                console.log("Rollback return data => ", data);
             })
                 .catch(function (err) {
+                console.log("Rollback error data => ", err);
+                return err;
             });
         }
         catch (err) {
         }
+    };
+    Transaction.prototype.insertTransaction = function (model, data) {
+        return new Promise(function (resolve, reject) {
+            model.create(data, function (err, data) {
+                if (err) {
+                    return reject({ error: err, model: model, object: data });
+                }
+                else {
+                    return resolve(data);
+                }
+            });
+        });
+    };
+    Transaction.prototype.updateTransaction = function (model, find, data) {
+        return new Promise(function (resolve, reject) {
+            model.update(find, data, function (err, data) {
+                if (err) {
+                    return reject({ error: err, model: model, find: find, object: data });
+                }
+                else {
+                    return resolve(data);
+                }
+            });
+        });
+    };
+    Transaction.prototype.removeTransaction = function (model, find) {
+        return new Promise(function (resolve, reject) {
+            model.remove(find, function (err, data) {
+                if (err) {
+                    return reject({ error: err, model: model, object: data });
+                }
+                else {
+                    return resolve(data);
+                }
+            });
+        });
     };
     return Transaction;
 }());
