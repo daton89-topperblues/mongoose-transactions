@@ -33,19 +33,44 @@ describe('Transaction run function', () => {
     // Read more about fake timers: http://facebook.github.io/jest/docs/en/timer-mocks.html#content
     jest.useFakeTimers();
 
-    // mongoose.connect('mongodb://127.0.0.1/mongoose-transactions', options);
-
-    // mongoose.connection.on('error', function (err) {
-    //     console.error('MongoDB connection error: ' + err);
-    //     process.exit(-1);
-    // });
-
-    // mongoose.connection.on('connected', function () {
-    //     console.error('MongoDB connected');
-    // });
-
     beforeAll(async () => {
         await mongoose.connect(`mongodb://localhost/mongoose-transactions`, options);
+    });
+
+    it('Insert Person', async () => {
+
+        await Person.create({ name: 'Toni', age: 22 })
+
+        let toni = await Person.findOne({ name: 'Toni' })
+
+        expect(toni.name).toBe('Toni')
+
+    });
+
+    it('Remove Person', async () => {
+
+        let toni = await Person.remove({ name: 'Toni' })
+
+        expect(toni.result.ok).toBe(1)
+
+    });
+
+    it('Insert Car', async () => {
+
+        await Car.create({ name: 'Opel', age: 22 })
+
+        let opel = await Car.findOne({ name: 'Opel' })
+
+        expect(opel.name).toBe('Opel')
+
+    });
+
+    it('Remove Car', async () => {
+
+        let opel = await Car.remove({ name: 'Opel' })
+
+        expect(opel.result.ok).toBe(1)
+
     });
 
     // transaction.insert('Person', {
@@ -64,37 +89,5 @@ describe('Transaction run function', () => {
     // })
 
     // transaction.run()
-
-    it('try create Person', async () => {
-
-        await Car.create({ name: 'Opel', age: 22 })
-
-        let opel = await Car.findOne({ name: 'Opel' })
-
-        console.log('opel', opel)
-
-        expect(opel.name).toBe('Opel')
-
-    });
-
-    // let hello: string;
-
-    // // Act before assertions
-    // beforeAll(async () => {
-    //     const p: Promise<string> = greeter('John');
-    //     jest.runOnlyPendingTimers();
-    //     hello = await p;
-    // });
-
-    // // Assert if setTimeout was called properly
-    // it('delays the greeting by 2 seconds', () => {
-    //     expect((<jest.Mock<void>>setTimeout).mock.calls.length).toBe(1);
-    //     expect((<jest.Mock<void>>setTimeout).mock.calls[0][1]).toBe(2000);
-    // });
-
-    // // Assert greeter result
-    // it('greets a user with `Hello, {name}` message', () => {
-    //     expect(hello).toBe('Hello, John');
-    // });
 
 })
