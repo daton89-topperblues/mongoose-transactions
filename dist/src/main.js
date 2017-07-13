@@ -132,7 +132,7 @@ var Transaction = (function () {
    */
     Transaction.prototype.remove = function (modelName, findObj) {
         var model = mongoose.model(modelName);
-        var oldModels = model.findOne(findObj);
+        var oldModels = model.findOne(findObj).exec();
         var transactionObj = {
             type: "remove",
             rollbackType: "insert",

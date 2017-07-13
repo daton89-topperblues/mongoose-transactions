@@ -112,7 +112,7 @@ export default class Transaction {
    */
     remove(modelName, findObj) {
         const model = mongoose.model(modelName);
-        const oldModels = model.findOne(findObj);
+        const oldModels = model.findOne(findObj).exec();
         const transactionObj = {
             type: "remove",
             rollbackType: "insert",
