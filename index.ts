@@ -139,9 +139,6 @@ class Transaction {
                 }
             })
             Promise.all(deferredQueries)
-                .then(data => {
-
-                })
                 .catch(err => {
                     this.rollback(err)
                 })
@@ -154,7 +151,7 @@ class Transaction {
         return new Promise(function (resolve, reject) {
             model.create(data, function (err, data) {
                 if (err) {
-                    return reject(err)
+                    return reject({error:err, model:model, object:data})
                 } else {
                     return resolve(data)
                 }
@@ -166,7 +163,7 @@ class Transaction {
         return new Promise(function (resolve, reject) {
             model.update(find, data, function (err, data) {
                 if (err) {
-                    return reject(err)
+                    return reject({error:err, model:model, find:find, object:data})
                 } else {
                     return resolve(data)
                 }
@@ -178,7 +175,7 @@ class Transaction {
         return new Promise(function (resolve, reject) {
             model.remove(find, function (err, data) {
                 if (err) {
-                    return reject(err)
+                    return reject({error:err, model:model, object:data})
                 } else {
                     return resolve(data)
                 }
