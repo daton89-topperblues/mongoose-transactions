@@ -2,7 +2,7 @@
   "name": "mongoose-transactions",
   "version": "1.0.0",
   "description": "Atomicity and Transactions for mongoose",
-  "main": "index.js",
+  "main": "dist/main.js",
   "scripts": {
     "lint": "tslint -c tslint.json 'src/**/*.{ts}'",
     "pretest": "npm run lint",
