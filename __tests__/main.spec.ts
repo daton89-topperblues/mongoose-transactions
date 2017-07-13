@@ -8,8 +8,10 @@ const options: any = {
     /* other options */
 }
 
+mongoose.Promise = global.Promise //tslintexclude
+
 mongoose.connection
-    .once('open', () => console.log('Connected to MongoDb'))
+    .once('open', () => { })
     .on('error', err => console.warn('Warning', err));
 
 const personSchema = new mongoose.Schema({
@@ -37,37 +39,37 @@ describe('Transaction run function', () => {
         await mongoose.connect(`mongodb://localhost/mongoose-transactions`, options);
     });
 
-    it('Insert Person', async () => {
+    test('Insert Person', async () => {
 
         await Person.create({ name: 'Toni', age: 22 })
 
-        let toni = await Person.findOne({ name: 'Toni' })
+        let toni: any = await Person.findOne({ name: 'Toni' })
 
         expect(toni.name).toBe('Toni')
 
     });
 
-    it('Remove Person', async () => {
+    test('Remove Person', async () => {
 
-        let toni = await Person.remove({ name: 'Toni' })
+        let toni: any = await Person.remove({ name: 'Toni' })
 
         expect(toni.result.ok).toBe(1)
 
     });
 
-    it('Insert Car', async () => {
+    test('Insert Car', async () => {
 
         await Car.create({ name: 'Opel', age: 22 })
 
-        let opel = await Car.findOne({ name: 'Opel' })
+        let opel: any = await Car.findOne({ name: 'Opel' })
 
         expect(opel.name).toBe('Opel')
 
     });
 
-    it('Remove Car', async () => {
+    test('Remove Car', async () => {
 
-        let opel = await Car.remove({ name: 'Opel' })
+        let opel: any = await Car.remove({ name: 'Opel' })
 
         expect(opel.result.ok).toBe(1)
 

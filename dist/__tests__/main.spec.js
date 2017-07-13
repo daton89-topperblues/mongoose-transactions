@@ -42,8 +42,9 @@ var options = {
     useMongoClient: true
     /* other options */
 };
+mongoose.Promise = global.Promise; //tslintexclude
 mongoose.connection
-    .once('open', function () { return console.log('Connected to MongoDb'); })
+    .once('open', function () { })
     .on('error', function (err) { return console.warn('Warning', err); });
 var personSchema = new mongoose.Schema({
     name: String,
@@ -69,7 +70,7 @@ describe('Transaction run function', function () {
             }
         });
     }); });
-    it('Insert Person', function () { return __awaiter(_this, void 0, void 0, function () {
+    test('Insert Person', function () { return __awaiter(_this, void 0, void 0, function () {
         var toni;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -84,7 +85,7 @@ describe('Transaction run function', function () {
             }
         });
     }); });
-    it('Remove Person', function () { return __awaiter(_this, void 0, void 0, function () {
+    test('Remove Person', function () { return __awaiter(_this, void 0, void 0, function () {
         var toni;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -96,7 +97,7 @@ describe('Transaction run function', function () {
             }
         });
     }); });
-    it('Insert Car', function () { return __awaiter(_this, void 0, void 0, function () {
+    test('Insert Car', function () { return __awaiter(_this, void 0, void 0, function () {
         var opel;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -111,7 +112,7 @@ describe('Transaction run function', function () {
             }
         });
     }); });
-    it('Remove Car', function () { return __awaiter(_this, void 0, void 0, function () {
+    test('Remove Car', function () { return __awaiter(_this, void 0, void 0, function () {
         var opel;
         return __generator(this, function (_a) {
             switch (_a.label) {
