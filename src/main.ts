@@ -110,9 +110,9 @@ export default class Transaction {
    * @param modelName - The string containing the mongoose model name.
    * @param findObj - The object containing data to find mongoose collection.
    */
-    remove(modelName, findObj) {
+    async remove(modelName, findObj) {
         const model = mongoose.model(modelName);
-        const oldModels = model.findOne(findObj).exec();
+        const oldModels = await model.findOne(findObj).exec();
         const transactionObj = {
             type: "remove",
             rollbackType: "insert",
