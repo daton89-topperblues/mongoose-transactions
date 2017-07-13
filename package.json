@@ -23,7 +23,6 @@
   },
   "homepage": "https://github.com/topperblues/mongoose-transactions#readme",
   "dependencies": {
-    "bluebird": "^3.5.0",
     "mongoose": "^4.11.1"
   },
   "devDependencies": {
