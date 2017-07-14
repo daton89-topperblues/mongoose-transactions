@@ -35,15 +35,6 @@
     "typescript": "^2.4.1"
   },
   "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "transform": {
-      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
-    },
-    "testRegex": "/__tests__/.*\\.(ts|tsx|js)$",
     "verbose": true,
     "notify": true
   }
