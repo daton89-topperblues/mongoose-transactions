@@ -130,33 +130,76 @@ export default class Transaction {
     /**
    * Run the transaction and check errors.
    */
-    run() {
-        const deferredQueries = []
+    async run() {
+        //const deferredQueries = []
         try {
-            this.transactions.forEach(transaction => {
+            // this.transactions.forEach(transaction => {
+            //     switch (transaction.type) {
+            //         case "insert":
+            //             deferredQueries.push(this.insertTransaction(transaction.model, transaction.data))
+            //             break;
+            //         case "update":
+            //             deferredQueries.push(this.updateTransaction(transaction.model, transaction.findObj, transaction.data))
+            //             break;
+            //         case "remove":
+            //             deferredQueries.push(this.removeTransaction(transaction.model, transaction.findObj))
+            //             break;
+            //     }
+            // })
+
+            console.log("Transaction types => ", this.transactions.map(t => t.type))
+
+            let that = this
+
+            return this.transactions.reduce(function (currentPromise, transaction, index) {
+                console.log("INDEX => ", index)
+                console.log("TRANSACTION TYPE => ", transaction.type)
+                let nextPromise
                 switch (transaction.type) {
                     case "insert":
-                        deferredQueries.push(this.insertTransaction(transaction.model, transaction.data))
+                        console.log("INSERT");
+                        nextPromise = that.insertTransaction(transaction.model, transaction.data)
                         break;
                     case "update":
-                        deferredQueries.push(this.updateTransaction(transaction.model, transaction.findObj, transaction.data))
+                        console.log("UPDATE");
+                        nextPromise = that.updateTransaction(transaction.model, transaction.findObj, transaction.data)
                         break;
                     case "remove":
-                        deferredQueries.push(this.removeTransaction(transaction.model, transaction.findObj))
+                        console.log("REMOVE");
+                        nextPromise = that.removeTransaction(transaction.model, transaction.findObj)
                         break;
                 }
-            })
-            return Promise.all(deferredQueries)
-                .then(data => {
-                    console.log("Run return data => ", data);
-                    return data
+                //costruisco l'array di promesse, next promise è sempre nel then!
+                return currentPromise.then(function (res) {
+                    return nextPromise.then(function (result) {
+                        res.push(result);
+                        return res;
+                    });
                 })
-                .catch(err => {
-                    console.log("Run error data => ", err);
-                    this.rollback(err)
-                })
+            }, Promise.resolve([]))
+            .then(finalResult => { 
+                console.log("FINAL RESULT =>", finalResult) 
+                return finalResult;
+            });
+
+
+
+
+
+            // return Promise.all(deferredQueries)
+            //     .then(data => {
+            //         console.log("Run return data => ", data);
+            //         return data
+            //     })
+            //     .catch(err => {
+            //         console.log("Run error data => ", err);
+            //         this.rollback(err)
+            //     })
+
+
         } catch (err) {
-            this.rollback(err)
+            console.log("ERROR => ", err)
+            //this.rollback(err)
         }
     }
 
@@ -197,23 +240,27 @@ export default class Transaction {
             return Promise.all(deferredQueries)
                 .then(data => {
                     console.log("Rollback return data => ", data);
-                    
+
                 })
                 .catch(err => {
                     console.log("Rollback error data => ", err);
-                    return err                    
+                    return err
                 })
         } catch (err) {
 
         }
     }
 
-       private insertTransaction(model, data) {
+    private insertTransaction(model, data) {
         return new Promise(function (resolve, reject) {
             model.create(data, function (err, data) {
                 if (err) {
+                    console.log("Insert error => ", err)
+
                     return reject({ error: err, model: model, object: data })
                 } else {
+                    console.log("Insert success => ", data)
+
                     return resolve(data)
                 }
             });
@@ -224,8 +271,11 @@ export default class Transaction {
         return new Promise(function (resolve, reject) {
             model.update(find, data, function (err, data) {
                 if (err) {
+                    console.log("Update error => ", err)
                     return reject({ error: err, model: model, find: find, object: data })
                 } else {
+                    console.log("Update success => ", data)
+
                     return resolve(data)
                 }
             });
@@ -236,8 +286,12 @@ export default class Transaction {
         return new Promise(function (resolve, reject) {
             model.remove(find, function (err, data) {
                 if (err) {
+                    console.log("Remove error => ", err)
+
                     return reject({ error: err, model: model, object: data })
                 } else {
+                    console.log("Remove success => ", data.result)
+
                     return resolve(data)
                 }
             });
