@@ -57,7 +57,7 @@ export default class Transaction {
                 const id = new mongoose.Types.ObjectId();
                 data._id = id;
             }
-            data = [data];
+            // data = [data];
         }
         const transactionObj = {
             type: "insert",
@@ -68,7 +68,6 @@ export default class Transaction {
             findObj: {},
             data: data
         };
-
 
         this.transactions.push(transactionObj);
 
@@ -131,31 +130,38 @@ export default class Transaction {
    * Run the transaction and check errors.
    */
     run() {
-        // console.log('this.transactions =>', this.transactions.map(t => t.type));
-        const deferredQueries = []
+
         try {
-            this.transactions.forEach(transaction => {
-                switch (transaction.type) {
-                    case "insert":
-                        deferredQueries.push(this.insertTransaction(transaction.model, transaction.data))
-                        break;
-                    case "update":
-                        deferredQueries.push(this.updateTransaction(transaction.model, transaction.findObj, transaction.data))
-                        break;
-                    case "remove":
-                        deferredQueries.push(this.removeTransaction(transaction.model, transaction.findObj))
-                        break;
-                }
-            })
-            return Promise.all(deferredQueries)
-                .then(data => {
-                    console.log("Run return data => ", data);
-                    return data
+
+            const final = []
+
+            return this.transactions.reduce((promise, transaction) => {
+
+                return promise.then((result) => {
+
+                    let operation: any = {}
+
+                    switch (transaction.type) {
+                        case "insert":
+                            operation = this.insertTransaction(transaction.model, transaction.data)
+                            break;
+                        case "update":
+                            operation = this.updateTransaction(transaction.model, transaction.findObj, transaction.data)
+                            break;
+                        case "remove":
+                            operation = this.removeTransaction(transaction.model, transaction.findObj)
+                            break;
+                    }
+
+                    return operation.then(query => {
+                        final.push(query)
+                        return final
+                    })
+
                 })
-                .catch(err => {
-                    console.log("Run error data => ", err);
-                    this.rollback(err)
-                })
+
+            }, Promise.resolve())
+
         } catch (err) {
             this.rollback(err)
         }
@@ -227,6 +233,7 @@ export default class Transaction {
                 if (err) {
                     return reject({ error: err, model: model, find: find, object: data })
                 } else {
+                    if (!data) return reject({ find, data })
                     return resolve(data)
                 }
             });
@@ -239,6 +246,7 @@ export default class Transaction {
                 if (err) {
                     return reject({ error: err, model: model, object: data })
                 } else {
+                    if (data.result.n == 0) return reject({ find, data })
                     return resolve(data.result)
                 }
             });
