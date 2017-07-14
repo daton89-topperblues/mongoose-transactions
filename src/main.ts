@@ -88,9 +88,9 @@ export default class Transaction {
    *                     strict (boolean) overrides the strict option for this update
    *                     overwrite (boolean) disables update-only mode, allowing you to overwrite the doc (false)
    */
-    async update(modelName, findObj, data, options = {}) {
+    update(modelName, findObj, data, options = {}) {
         const model = mongoose.model(modelName);
-        const oldModels = await model.find(findObj).exec();
+        const oldModels = model.find(findObj);
         const transactionObj = {
             type: "update",
             rollbackType: "update",
@@ -110,9 +110,9 @@ export default class Transaction {
    * @param modelName - The string containing the mongoose model name.
    * @param findObj - The object containing data to find mongoose collection.
    */
-    async remove(modelName, findObj) {
+    remove(modelName, findObj) {
         const model = mongoose.model(modelName);
-        const oldModels = await model.findOne(findObj).exec();
+        const oldModels = model.findOne(findObj);
         const transactionObj = {
             type: "remove",
             rollbackType: "insert",
@@ -131,6 +131,7 @@ export default class Transaction {
    * Run the transaction and check errors.
    */
     run() {
+        // console.log('this.transactions =>', this.transactions.map(t => t.type));
         const deferredQueries = []
         try {
             this.transactions.forEach(transaction => {
@@ -197,18 +198,18 @@ export default class Transaction {
             return Promise.all(deferredQueries)
                 .then(data => {
                     console.log("Rollback return data => ", data);
-                    
+
                 })
                 .catch(err => {
                     console.log("Rollback error data => ", err);
-                    return err                    
+                    return err
                 })
         } catch (err) {
 
         }
     }
 
-       private insertTransaction(model, data) {
+    private insertTransaction(model, data) {
         return new Promise(function (resolve, reject) {
             model.create(data, function (err, data) {
                 if (err) {
@@ -222,7 +223,7 @@ export default class Transaction {
 
     private updateTransaction(model, find, data) {
         return new Promise(function (resolve, reject) {
-            model.update(find, data, function (err, data) {
+            model.findOneAndUpdate(find, data, { new: true }, function (err, data) {
                 if (err) {
                     return reject({ error: err, model: model, find: find, object: data })
                 } else {
@@ -238,7 +239,7 @@ export default class Transaction {
                 if (err) {
                     return reject({ error: err, model: model, object: data })
                 } else {
-                    return resolve(data)
+                    return resolve(data.result)
                 }
             });
         });
