@@ -162,7 +162,8 @@ export default class Transaction {
             }, Promise.resolve())
 
         } catch (err) {
-            this.rollback(err)
+            console.log("ERROR => ", err)
+            //this.rollback(err)
         }
     }
 
@@ -203,7 +204,6 @@ export default class Transaction {
             return Promise.all(deferredQueries)
                 .then((data) => {
                     console.log("Rollback return data => ", data);
-
                 })
                 .catch((error) => {
                     console.log("Rollback error data => ", error);
@@ -220,6 +220,8 @@ export default class Transaction {
                 if (err) {
                     return reject({ error: err, model, object: data })
                 } else {
+                    console.log("Insert success => ", data)
+
                     return resolve(data)
                 }
             });
