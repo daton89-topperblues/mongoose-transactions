@@ -40,19 +40,17 @@ var main_1 = require("../src/main");
 var mongoose = require("mongoose");
 var options = {
     useMongoClient: true
-    /* other options */
 };
-mongoose.Promise = global.Promise; //tslintexclude
+// mongoose.Promise = global.Promise
 mongoose.connection
-    .once('open', function () { })
     .on('error', function (err) { return console.warn('Warning', err); });
 var personSchema = new mongoose.Schema({
-    name: String,
-    age: Number
+    age: Number,
+    name: String
 });
 var carSchema = new mongoose.Schema({
-    name: String,
-    age: Number
+    age: Number,
+    name: String
 });
 var Person = mongoose.model('Person', personSchema);
 var Car = mongoose.model('Car', carSchema);
@@ -113,8 +111,8 @@ describe('Transaction run ', function () {
                 case 0:
                     person = "Person";
                     jonathanObject = {
-                        name: 'Jonathan',
-                        age: 18
+                        age: 18,
+                        name: 'Jonathan'
                     };
                     transaction.insert(person, jonathanObject);
                     return [4 /*yield*/, transaction.run()];
@@ -138,12 +136,12 @@ describe('Transaction run ', function () {
                 case 0:
                     person = "Person";
                     tonyObject = {
-                        name: 'Tony',
-                        age: 28
+                        age: 28,
+                        name: 'Tony'
                     };
                     nicolaObject = {
+                        age: 32,
                         name: 'Nicola',
-                        age: 32
                     };
                     transaction.insert(person, tonyObject);
                     transaction.update(person, tonyObject, nicolaObject);
@@ -168,12 +166,12 @@ describe('Transaction run ', function () {
                 case 0:
                     person = "Person";
                     bobObject = {
+                        age: 45,
                         name: 'Bob',
-                        age: 45
                     };
                     aliceObject = {
+                        age: 23,
                         name: 'Alice',
-                        age: 23
                     };
                     transaction.insert(person, bobObject);
                     transaction.update(person, bobObject, aliceObject);

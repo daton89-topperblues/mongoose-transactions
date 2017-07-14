@@ -5,23 +5,22 @@ import * as mongoose from 'mongoose';
 
 const options: any = {
     useMongoClient: true
-    /* other options */
 }
 
-mongoose.Promise = global.Promise //tslintexclude
+// mongoose.Promise = global.Promise
 
 mongoose.connection
-    .once('open', () => { })
-    .on('error', err => console.warn('Warning', err));
+    // .once('open', () => { })
+    .on('error', (err) => console.warn('Warning', err));
 
 const personSchema = new mongoose.Schema({
-    name: String,
-    age: Number
+    age: Number,
+    name: String
 })
 
 const carSchema = new mongoose.Schema({
-    name: String,
-    age: Number
+    age: Number,
+    name: String
 })
 
 const Person = mongoose.model('Person', personSchema)
@@ -53,14 +52,13 @@ describe('Transaction run ', () => {
         transaction.clean()
     });
 
-
     test('insert', async () => {
 
         const person: string = "Person"
 
         const jonathanObject: any = {
-            name: 'Jonathan',
-            age: 18
+            age: 18,
+            name: 'Jonathan'
         }
 
         transaction.insert(person, jonathanObject)
@@ -84,13 +82,13 @@ describe('Transaction run ', () => {
         const person: string = "Person"
 
         const tonyObject: any = {
-            name: 'Tony',
-            age: 28
+            age: 28,
+            name: 'Tony'
         }
 
         const nicolaObject: any = {
+            age: 32,
             name: 'Nicola',
-            age: 32
         }
 
         transaction.insert(person, tonyObject)
@@ -116,13 +114,13 @@ describe('Transaction run ', () => {
         const person: string = "Person"
 
         const bobObject: any = {
+            age: 45,
             name: 'Bob',
-            age: 45
         }
 
         const aliceObject: any = {
+            age: 23,
             name: 'Alice',
-            age: 23
         }
 
         transaction.insert(person, bobObject)
