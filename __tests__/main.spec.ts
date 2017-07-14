@@ -5,23 +5,22 @@ import * as mongoose from 'mongoose';
 
 const options: any = {
     useMongoClient: true
-    /* other options */
 }
 
-mongoose.Promise = global.Promise //tslintexclude
+// mongoose.Promise = global.Promise
 
 mongoose.connection
-    .once('open', () => { })
-    .on('error', err => console.warn('Warning', err));
+    // .once('open', () => { })
+    .on('error', (err) => console.warn('Warning', err));
 
 const personSchema = new mongoose.Schema({
-    name: String,
-    age: Number
+    age: Number,
+    name: String
 })
 
 const carSchema = new mongoose.Schema({
-    name: String,
-    age: Number
+    age: Number,
+    name: String
 })
 
 const Person = mongoose.model('Person', personSchema)
@@ -30,97 +29,119 @@ const Car = mongoose.model('Car', carSchema)
 
 const transaction = new Transaction();
 
-describe('Transaction run function', () => {
+async function dropCollections() {
+    await Person.remove({});
+    await Car.remove({});
+}
+
+describe('Transaction run ', () => {
 
     // Read more about fake timers: http://facebook.github.io/jest/docs/en/timer-mocks.html#content
-    jest.useFakeTimers();
+    // jest.useFakeTimers();
 
     beforeAll(async () => {
         await mongoose.connect(`mongodb://localhost/mongoose-transactions`, options);
     });
 
-    beforeEach(async () => {
-        transaction.clean()
-        await Person.remove({});
-        await Car.remove({});
-    });
+    afterAll(async () => {
+        await dropCollections()
+    })
 
+    beforeEach(async () => {
+        await dropCollections()
+        transaction.clean()
+    });
 
     test('insert', async () => {
 
-        const data: any = {
-            name: 'Bob',
-            age: 32
+        const person: string = "Person"
+
+        const jonathanObject: any = {
+            age: 18,
+            name: 'Jonathan'
         }
-        const modelName: string = "Person"
 
-        transaction.insert(modelName, data)
+        transaction.insert(person, jonathanObject)
 
-        await transaction.run()
+        const final = await transaction.run()
 
-        let bob: any = await Person.findOne(data).exec()
+        const jonathan: any = await Person.findOne(jonathanObject).exec()
 
-        expect(bob.name).toBe(data.name)
+        expect(jonathan.name).toBe(jonathanObject.name)
 
-        expect(bob.age).toBe(data.age)
+        expect(jonathan.age).toBe(jonathanObject.age)
+
+        expect(final).toBeInstanceOf(Array)
+
+        expect(final.length).toBe(1)
 
     });
 
     test('update', async () => {
 
-        const data: any = {
-            name: 'Bob',
-            age: 32
-        }
-        const modelName: string = "Person"
-        const type: string = "insert"
-        const rollbackType: string = "remove"
+        const person: string = "Person"
 
-        const update: any = {
-            name: 'Alice',
-            age: 23
+        const tonyObject: any = {
+            age: 28,
+            name: 'Tony'
         }
 
-        transaction.insert(modelName, data)
+        const nicolaObject: any = {
+            age: 32,
+            name: 'Nicola',
+        }
 
-        transaction.update(modelName, data, update)
+        transaction.insert(person, tonyObject)
 
-        await transaction.run()
+        transaction.update(person, tonyObject, nicolaObject)
 
-        let alice: any = await Person.findOne(update).exec()
+        const final = await transaction.run()
 
-        expect(alice.name).toBe(update.name)
+        const nicola: any = await Person.findOne(nicolaObject).exec()
 
-        expect(alice.age).toBe(update.age)
+        expect(nicola.name).toBe(nicolaObject.name)
+
+        expect(nicola.age).toBe(nicolaObject.age)
+
+        expect(final).toBeInstanceOf(Array)
+
+        expect(final.length).toBe(2)
 
     });
 
     test('remove', async () => {
 
-        const data: any = {
+        const person: string = "Person"
+
+        const bobObject: any = {
+            age: 45,
             name: 'Bob',
-            age: 32
         }
-        const modelName: string = "Person"
-        const type: string = "insert"
-        const rollbackType: string = "remove"
 
-        const update: any = {
+        const aliceObject: any = {
+            age: 23,
             name: 'Alice',
-            age: 23
         }
 
-        transaction.insert(modelName, data)
+        transaction.insert(person, bobObject)
 
-        transaction.update(modelName, data, update)
+        transaction.update(person, bobObject, aliceObject)
 
-        transaction.remove(modelName, update)
+        transaction.remove(person, aliceObject)
 
-        await transaction.run()
+        const final = await transaction.run()
 
-        let alice: any = await Person.findOne(update).exec()
+        const bob: any = await Person.findOne(bobObject).exec()
 
-        expect(alice).toEqual({})
+        const alice: any = await Person.findOne(aliceObject).exec()
+
+        expect(final).toBeInstanceOf(Array)
+
+        expect(final.length).toBe(3)
+
+        expect(alice).toBeNull()
+
+        expect(bob).toBeNull()
 
     })
 

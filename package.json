@@ -4,10 +4,13 @@
   "description": "Atomicity and Transactions for mongoose",
   "main": "dist/main.js",
   "scripts": {
-    "lint": "tslint -c tslint.json 'src/**/*.{ts}'",
+    "lint": "tslint -c tslint.json 'src/**/*.ts' '__tests__/**/*.ts'",
     "pretest": "npm run lint",
-    "test": "jest"
+    "test": "jest --forceExit"
   },
+  "pre-commit": [
+    "test"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/topperblues/mongoose-transactions.git"
@@ -30,6 +33,7 @@
     "@types/jest": "^20.0.2",
     "@types/node": "^8.0.11",
     "jest": "^20.0.4",
+    "pre-commit": "^1.2.2",
     "ts-jest": "^20.0.7",
     "tslint": "^5.5.0",
     "typescript": "^2.4.1"
@@ -45,6 +49,7 @@
     },
     "testRegex": "/__tests__/.*\\.(ts|tsx|js)$",
     "verbose": true,
-    "notify": true
+    "notify": true,
+    "bail": true
   }
 }

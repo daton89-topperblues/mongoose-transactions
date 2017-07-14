@@ -40,26 +40,39 @@ var main_1 = require("../src/main");
 var mongoose = require("mongoose");
 var options = {
     useMongoClient: true
-    /* other options */
 };
-mongoose.Promise = global.Promise; //tslintexclude
+// mongoose.Promise = global.Promise
 mongoose.connection
-    .once('open', function () { })
     .on('error', function (err) { return console.warn('Warning', err); });
 var personSchema = new mongoose.Schema({
-    name: String,
-    age: Number
+    age: Number,
+    name: String
 });
 var carSchema = new mongoose.Schema({
-    name: String,
-    age: Number
+    age: Number,
+    name: String
 });
 var Person = mongoose.model('Person', personSchema);
 var Car = mongoose.model('Car', carSchema);
 var transaction = new main_1.default();
-describe('Transaction run function', function () {
+function dropCollections() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, Person.remove({})];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, Car.remove({})];
+                case 2:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+describe('Transaction run ', function () {
     // Read more about fake timers: http://facebook.github.io/jest/docs/en/timer-mocks.html#content
-    jest.useFakeTimers();
+    // jest.useFakeTimers();
     beforeAll(function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -70,100 +83,112 @@ describe('Transaction run function', function () {
             }
         });
     }); });
+    afterAll(function () { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, dropCollections()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
     beforeEach(function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0:
-                    transaction.clean();
-                    return [4 /*yield*/, Person.remove({})];
+                case 0: return [4 /*yield*/, dropCollections()];
                 case 1:
                     _a.sent();
-                    return [4 /*yield*/, Car.remove({})];
-                case 2:
-                    _a.sent();
+                    transaction.clean();
                     return [2 /*return*/];
             }
         });
     }); });
     test('insert', function () { return __awaiter(_this, void 0, void 0, function () {
-        var data, modelName, bob;
+        var person, jonathanObject, final, jonathan;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    data = {
-                        name: 'Bob',
-                        age: 32
+                    person = "Person";
+                    jonathanObject = {
+                        age: 18,
+                        name: 'Jonathan'
                     };
-                    modelName = "Person";
-                    transaction.insert(modelName, data);
+                    transaction.insert(person, jonathanObject);
                     return [4 /*yield*/, transaction.run()];
                 case 1:
-                    _a.sent();
-                    return [4 /*yield*/, Person.findOne(data).exec()];
+                    final = _a.sent();
+                    return [4 /*yield*/, Person.findOne(jonathanObject).exec()];
                 case 2:
-                    bob = _a.sent();
-                    expect(bob.name).toBe(data.name);
-                    expect(bob.age).toBe(data.age);
+                    jonathan = _a.sent();
+                    expect(jonathan.name).toBe(jonathanObject.name);
+                    expect(jonathan.age).toBe(jonathanObject.age);
+                    expect(final).toBeInstanceOf(Array);
+                    expect(final.length).toBe(1);
                     return [2 /*return*/];
             }
         });
     }); });
     test('update', function () { return __awaiter(_this, void 0, void 0, function () {
-        var data, modelName, type, rollbackType, update, alice;
+        var person, tonyObject, nicolaObject, final, nicola;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    data = {
-                        name: 'Bob',
-                        age: 32
+                    person = "Person";
+                    tonyObject = {
+                        age: 28,
+                        name: 'Tony'
                     };
-                    modelName = "Person";
-                    type = "insert";
-                    rollbackType = "remove";
-                    update = {
-                        name: 'Alice',
-                        age: 23
+                    nicolaObject = {
+                        age: 32,
+                        name: 'Nicola',
                     };
-                    transaction.insert(modelName, data);
-                    transaction.update(modelName, data, update);
+                    transaction.insert(person, tonyObject);
+                    transaction.update(person, tonyObject, nicolaObject);
                     return [4 /*yield*/, transaction.run()];
                 case 1:
-                    _a.sent();
-                    return [4 /*yield*/, Person.findOne(update).exec()];
+                    final = _a.sent();
+                    return [4 /*yield*/, Person.findOne(nicolaObject).exec()];
                 case 2:
-                    alice = _a.sent();
-                    expect(alice.name).toBe(update.name);
-                    expect(alice.age).toBe(update.age);
+                    nicola = _a.sent();
+                    expect(nicola.name).toBe(nicolaObject.name);
+                    expect(nicola.age).toBe(nicolaObject.age);
+                    expect(final).toBeInstanceOf(Array);
+                    expect(final.length).toBe(2);
                     return [2 /*return*/];
             }
         });
     }); });
     test('remove', function () { return __awaiter(_this, void 0, void 0, function () {
-        var data, modelName, type, rollbackType, update, alice;
+        var person, bobObject, aliceObject, final, bob, alice;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    data = {
+                    person = "Person";
+                    bobObject = {
+                        age: 45,
                         name: 'Bob',
-                        age: 32
                     };
-                    modelName = "Person";
-                    type = "insert";
-                    rollbackType = "remove";
-                    update = {
+                    aliceObject = {
+                        age: 23,
                         name: 'Alice',
-                        age: 23
                     };
-                    transaction.insert(modelName, data);
-                    transaction.update(modelName, data, update);
-                    transaction.remove(modelName, update);
+                    transaction.insert(person, bobObject);
+                    transaction.update(person, bobObject, aliceObject);
+                    transaction.remove(person, aliceObject);
                     return [4 /*yield*/, transaction.run()];
                 case 1:
-                    _a.sent();
-                    return [4 /*yield*/, Person.findOne(update).exec()];
+                    final = _a.sent();
+                    return [4 /*yield*/, Person.findOne(bobObject).exec()];
                 case 2:
+                    bob = _a.sent();
+                    return [4 /*yield*/, Person.findOne(aliceObject).exec()];
+                case 3:
                     alice = _a.sent();
-                    expect(alice).toEqual({});
+                    expect(final).toBeInstanceOf(Array);
+                    expect(final.length).toBe(3);
+                    expect(alice).toBeNull();
+                    expect(bob).toBeNull();
                     return [2 /*return*/];
             }
         });
