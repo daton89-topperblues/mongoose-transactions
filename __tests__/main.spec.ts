@@ -30,7 +30,12 @@ const Car = mongoose.model('Car', carSchema)
 
 const transaction = new Transaction();
 
-describe('Transaction run function', () => {
+async function dropCollections() {
+    await Person.remove({});
+    await Car.remove({});
+}
+
+describe('Transaction run ', () => {
 
     // Read more about fake timers: http://facebook.github.io/jest/docs/en/timer-mocks.html#content
     // jest.useFakeTimers();
@@ -39,86 +44,106 @@ describe('Transaction run function', () => {
         await mongoose.connect(`mongodb://localhost/mongoose-transactions`, options);
     });
 
+    afterAll(async () => {
+        await dropCollections()
+    })
+
     beforeEach(async () => {
+        await dropCollections()
         transaction.clean()
-        await Person.remove({});
-        await Car.remove({});
     });
 
 
-    // test('insert', async () => {
+    test('insert', async () => {
 
-    //     const data: any = {
-    //         name: 'Bob',
-    //         age: 32
-    //     }
-    //     const modelName: string = "Person"
+        const person: string = "Person"
 
-    //     transaction.insert(modelName, data)
+        const jonathanObject: any = {
+            name: 'Jonathan',
+            age: 18
+        }
 
-    //     await transaction.run()
+        transaction.insert(person, jonathanObject)
 
-    //     let bob: any = await Person.findOne(data).exec()
+        const final = await transaction.run()
 
-    //     expect(bob.name).toBe(data.name)
+        const jonathan: any = await Person.findOne(jonathanObject).exec()
 
-    //     expect(bob.age).toBe(data.age)
+        expect(jonathan.name).toBe(jonathanObject.name)
 
-    // });
+        expect(jonathan.age).toBe(jonathanObject.age)
 
-    // test('update', async () => {
+        expect(final).toBeInstanceOf(Array)
 
-    //     const data: any = {
-    //         name: 'Bob',
-    //         age: 32
-    //     }
-    //     const modelName: string = "Person"
-    //     const type: string = "insert"
-    //     const rollbackType: string = "remove"
+        expect(final.length).toBe(1)
 
-    //     const update: any = {
-    //         name: 'Alice',
-    //         age: 23
-    //     }
+    });
 
-    //     transaction.insert(modelName, data)
+    test('update', async () => {
 
-    //     transaction.update(modelName, data, update)
+        const person: string = "Person"
 
-    //     await transaction.run()
+        const tonyObject: any = {
+            name: 'Tony',
+            age: 28
+        }
 
-    //     let alice: any = await Person.findOne(update).exec()
+        const nicolaObject: any = {
+            name: 'Nicola',
+            age: 32
+        }
 
-    //     expect(alice.name).toBe(update.name)
+        transaction.insert(person, tonyObject)
 
-    //     expect(alice.age).toBe(update.age)
+        transaction.update(person, tonyObject, nicolaObject)
 
-    // });
+        const final = await transaction.run()
+
+        const nicola: any = await Person.findOne(nicolaObject).exec()
+
+        expect(nicola.name).toBe(nicolaObject.name)
+
+        expect(nicola.age).toBe(nicolaObject.age)
+
+        expect(final).toBeInstanceOf(Array)
+
+        expect(final.length).toBe(2)
+
+    });
 
     test('remove', async () => {
 
-        const data: any = {
-            name: 'Bob',
-            age: 32
-        }
-        const modelName: string = "Person"
+        const person: string = "Person"
 
-        const update: any = {
+        const bobObject: any = {
+            name: 'Bob',
+            age: 45
+        }
+
+        const aliceObject: any = {
             name: 'Alice',
             age: 23
         }
 
-        transaction.insert(modelName, data)
+        transaction.insert(person, bobObject)
 
-        transaction.update(modelName, data, update)
+        transaction.update(person, bobObject, aliceObject)
 
-        transaction.remove(modelName, update)
+        transaction.remove(person, aliceObject)
 
-        await transaction.run()
+        const final = await transaction.run()
 
-        let alice: any = await Person.findOne(update).exec()
+        const bob: any = await Person.findOne(bobObject).exec()
 
-        expect(alice).toEqual(null)
+        const alice: any = await Person.findOne(aliceObject).exec()
+
+        expect(final).toBeInstanceOf(Array)
+
+        expect(final.length).toBe(3)
+
+        expect(alice).toBeNull()
+
+        expect(bob).toBeNull()
 
     })
 
