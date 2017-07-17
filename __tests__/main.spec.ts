@@ -63,7 +63,7 @@ describe('Transaction run ', () => {
 
         transaction.insert(person, jonathanObject)
 
-        const final = await transaction.run()
+        const final = await transaction.run().catch(console.error)
 
         const jonathan: any = await Person.findOne(jonathanObject).exec()
 
@@ -145,4 +145,40 @@ describe('Transaction run ', () => {
 
     })
 
+    test('Fail remove', async () => {
+
+        const person: string = "Person"
+
+        const bobObject: any = {
+            age: 45,
+            name: 'Bob',
+        }
+
+        const aliceObject: any = {
+            age: 23,
+            name: 'Alice',
+        }
+
+        transaction.insert(person, bobObject)
+
+        transaction.update(person, bobObject, aliceObject)
+
+        transaction.remove(person, { name: 'pippo' })
+
+        try {
+
+            const final = await transaction.run()
+
+        } catch (error) {
+
+            expect(error.executedTransactions).toEqual(2)
+
+            expect(error.remainingTransactions).toEqual(1)
+
+            expect(error.error.message).toBe('Entity not found')
+
+            expect(error.data).toEqual({ name: 'pippo' })
+        }
+
+    })
 })
