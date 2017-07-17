@@ -139,12 +139,18 @@ export default class Transaction {
                         operation = this.insertTransaction(transaction.model, transaction.data)
                         break;
                     case "update":
-                        transaction.oldModel = this.findByIdTransaction(transaction.model, transaction.findId);
-                        operation = this.updateTransaction(transaction.model, transaction.findId, transaction.data)
+                        operation = this.findByIdTransaction(transaction.model, transaction.findId)
+                            .then((findRes) => {
+                                transaction.oldModel = findRes;
+                                return this.updateTransaction(transaction.model, transaction.findId, transaction.data)
+                            })
                         break;
                     case "remove":
-                        transaction.oldModel = this.findByIdTransaction(transaction.model, transaction.findId);
-                        operation = this.removeTransaction(transaction.model, transaction.findId)
+                        operation = this.findByIdTransaction(transaction.model, transaction.findId)
+                            .then((findRes) => {
+                                transaction.oldModel = findRes;
+                                return this.removeTransaction(transaction.model, transaction.findId)
+                            })
                         break;
                 }
 
