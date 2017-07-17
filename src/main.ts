@@ -139,11 +139,11 @@ export default class Transaction {
                         operation = this.insertTransaction(transaction.model, transaction.data)
                         break;
                     case "update":
-                        transaction.oldModel = await transaction.model.findById(transaction.findId).exec();
+                        transaction.oldModel = this.findByIdTransaction(transaction.model, transaction.findId);
                         operation = this.updateTransaction(transaction.model, transaction.findId, transaction.data)
                         break;
                     case "remove":
-                        transaction.oldModel = await transaction.model.findById(transaction.findId).exec();
+                        transaction.oldModel = this.findByIdTransaction(transaction.model, transaction.findId);
                         operation = this.removeTransaction(transaction.model, transaction.findId)
                         break;
                 }
@@ -201,6 +201,10 @@ export default class Transaction {
 
     }
 
+    private async findByIdTransaction(model, findId) {
+        return await model.findById(findId).exec();
+    }
+
     private insertTransaction(model, data) {
         return new Promise((resolve, reject) => {
             model.create(data, (err, result) => {
@@ -238,11 +242,8 @@ export default class Transaction {
                 if (err) {
                     return reject(this.transactionError(err, find))
                 } else {
-                    if (data.result.n === 0) {
-                        return reject(this.transactionError(new Error('Entity not found'), find))
-                    } else {
-                        return resolve(data.result)
-                    }
+
+                    return resolve(data.result)
                 }
             });
 
