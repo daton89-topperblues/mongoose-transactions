@@ -17,10 +17,10 @@ export default class Transaction {
         /** The mongoose model name */
         modelName: string,
         /** The mongoose model instance before transaction if exists */
-        oldModels: any,
-        /** The object ... */
+        oldModel: any,
+        /** The id of the object */
         findId: string,
-        /** The array of data ... */
+        /** The data */
         data: any
     }> = [];
 
@@ -56,7 +56,7 @@ export default class Transaction {
             findId: "",
             model,
             modelName,
-            oldModels: null,
+            oldModel: null,
             rollbackType: "remove",
             type: "insert",
         };
@@ -91,7 +91,7 @@ export default class Transaction {
             findId,
             model,
             modelName,
-            oldModels: null,
+            oldModel: null,
             rollbackType: "update",
             type: "update",
         };
@@ -112,7 +112,7 @@ export default class Transaction {
             findId,
             model,
             modelName,
-            oldModels: null,
+            oldModel: null,
             rollbackType: "insert",
             type: "remove",
         };
@@ -130,7 +130,7 @@ export default class Transaction {
 
         return this.transactions.reduce((promise, transaction, index) => {
 
-            return promise.then((result) => {
+            return promise.then(async (result) => {
 
                 let operation: any = {}
 
@@ -139,9 +139,11 @@ export default class Transaction {
                         operation = this.insertTransaction(transaction.model, transaction.data)
                         break;
                     case "update":
+                        transaction.oldModel = await transaction.model.findById(transaction.findId).exec();
                         operation = this.updateTransaction(transaction.model, transaction.findId, transaction.data)
                         break;
                     case "remove":
+                        transaction.oldModel = await transaction.model.findById(transaction.findId).exec();
                         operation = this.removeTransaction(transaction.model, transaction.findId)
                         break;
                 }
@@ -163,7 +165,7 @@ export default class Transaction {
      */
     private rollback(err) {
 
-        let transactionsToRollback = this.transactions.slice(0, this.rollbackIndex)
+        const transactionsToRollback = this.transactions.slice(0, this.rollbackIndex)
 
         transactionsToRollback.reverse()
 
@@ -180,10 +182,10 @@ export default class Transaction {
                         operation = this.insertTransaction(transaction.model, transaction.oldModel)
                         break;
                     case "update":
-                        operation = this.updateTransaction(transaction.model, transaction.findObj, transaction.data)
+                        operation = this.updateTransaction(transaction.model, transaction.findId, transaction.oldModel)
                         break;
                     case "remove":
-                        operation = this.removeTransaction(transaction.model, transaction.findObj)
+                        operation = this.removeTransaction(transaction.model, transaction.findId)
                         break;
                 }
 
@@ -196,43 +198,6 @@ export default class Transaction {
             })
 
         }, Promise.resolve())
-
-        this.transactions.forEach((transaction) => {
-            switch (transaction.type) {
-                case "insert":
-                    // Rollback remove with insert
-                    transaction.oldModels.forEach((oldModel) => {
-                        deferredQueries.push(this.insertTransaction(transaction.model, oldModel))
-                    })
-                    break;
-                case "update":
-                    // Rollback update with update
-                    transaction.oldModels.forEach((oldModel) => {
-                        const find = {
-                            _id: oldModel._id
-                        }
-                        deferredQueries.push(this.updateTransaction(transaction.model, find, oldModel))
-                    })
-                    break;
-                case "remove":
-                    // Rollback insert with remove
-                    transaction.oldModels.forEach((oldModel) => {
-                        const find = {
-                            _id: oldModel._id
-                        }
-                        deferredQueries.push(this.removeTransaction(transaction.model, find))
-                    })
-                    break;
-            }
-        })
-        return Promise.all(deferredQueries)
-            .then((data) => {
-                console.log("Rollback return data => ", data);
-            })
-            .catch((error) => {
-                console.log("Rollback error data => ", error);
-                return error
-            })
 
     }
 
@@ -251,7 +216,7 @@ export default class Transaction {
 
     private updateTransaction(model, find, data) {
         return new Promise((resolve, reject) => {
-            model.findByIdAndUpdate(find, data, { new: true }, (err, result) => {
+            model.findByIdAndUpdate(find, data, { new: false }, (err, result) => {
 
                 if (err) {
                     return reject(this.transactionError(err, { find, data }))
