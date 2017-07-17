@@ -185,4 +185,49 @@ describe('Transaction run ', () => {
         }
 
     })
+
+    test('Fail remove with rollback', async () => {
+
+        const person: string = "Person"
+
+        const bobObject: any = {
+            age: 45,
+            name: 'Bob',
+        }
+
+        const aliceObject: any = {
+            age: 23,
+            name: 'Alice',
+        }
+
+        const personId = transaction.insert(person, bobObject)
+
+        transaction.update(person, personId, aliceObject)
+
+        const failObjectId = new mongoose.Types.ObjectId()
+
+        transaction.remove(person, failObjectId)
+
+        expect(personId).not.toEqual(failObjectId)
+
+        try {
+
+            const final = await transaction.run()
+
+        } catch (error) {
+
+            expect(error.executedTransactions).toEqual(2)
+
+            expect(error.remainingTransactions).toEqual(1)
+
+            expect(error.error.message).toBe('Entity not found')
+
+            expect(error.data).toEqual(failObjectId)
+
+            const rollbackObj = await transaction.rollback().catch(console.error)
+
+            expect(rollbackObj).toBeNaN()
+        }
+
+    })
 })
