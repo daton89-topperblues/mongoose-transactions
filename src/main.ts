@@ -210,7 +210,6 @@ export default class Transaction {
                 if (err) {
                     return reject(this.transactionError(err, data))
                 } else {
-
                     return resolve(result)
                 }
             });
@@ -246,7 +245,7 @@ export default class Transaction {
                     if (data == null) {
                         return reject(this.transactionError(new Error('Entity not found'), find))
                     } else {
-                        return resolve(data.result)
+                        return resolve(data)
                     }
 
                 }
