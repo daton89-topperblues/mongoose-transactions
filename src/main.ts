@@ -165,7 +165,7 @@ export default class Transaction {
      */
     public rollback() {
 
-        const transactionsToRollback: any = this.transactions.slice(0, this.rollbackIndex)
+        const transactionsToRollback: any = this.transactions.slice(0, this.rollbackIndex + 1)
 
         transactionsToRollback.reverse()
 
