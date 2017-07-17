@@ -3,6 +3,9 @@ import * as mongoose from "mongoose";
 /** Class representing a transaction. */
 export default class Transaction {
 
+    /** Index used for retrieve the executed transaction in the run */
+    public rollbackIndex = 0
+
     /** The actions to execute on mongoose collections when transaction run is called */
     private transactions: Array<{
         /** The transaction type to run */
@@ -38,23 +41,16 @@ export default class Transaction {
      * Create the insert transaction and rollback states.
      * @param modelName - The string containing the mongoose model name.
      * @param data - The object or array containing data to insert into mongoose model.
+     * @returns id - The id of the bject to insert.
      */
     public insert(modelName, data) {
         const model = mongoose.model(modelName);
-        if (data instanceof Array) {
-            data.forEach((currentObj) => {
-                if (!currentObj._id) {
-                    const id = new mongoose.Types.ObjectId();
-                    currentObj._id = id;
-                }
-            });
-        } else {
-            if (!data._id) {
-                const id = new mongoose.Types.ObjectId();
-                data._id = id;
-            }
-            // data = [data];
+
+        if (!data._id) {
+            const id = new mongoose.Types.ObjectId();
+            data._id = id;
         }
+
         const transactionObj = {
             data,
             findObj: {},
@@ -66,6 +62,8 @@ export default class Transaction {
         };
 
         this.transactions.push(transactionObj);
+
+        return data._id;
 
     }
 
@@ -130,99 +128,124 @@ export default class Transaction {
      */
     public run() {
 
-        try {
+        const final = []
 
-            const final = []
+        return this.transactions.reduce((promise, transaction, index) => {
 
-            return this.transactions.reduce((promise, transaction) => {
+            return promise.then((result) => {
 
-                return promise.then((result) => {
+                let operation: any = {}
 
-                    let operation: any = {}
+                switch (transaction.type) {
+                    case "insert":
+                        operation = this.insertTransaction(transaction.model, transaction.data)
+                        break;
+                    case "update":
+                        operation = this.updateTransaction(transaction.model, transaction.findObj, transaction.data)
+                        break;
+                    case "remove":
+                        operation = this.removeTransaction(transaction.model, transaction.findObj)
+                        break;
+                }
 
-                    switch (transaction.type) {
-                        case "insert":
-                            operation = this.insertTransaction(transaction.model, transaction.data)
-                            break;
-                        case "update":
-                            operation = this.updateTransaction(transaction.model, transaction.findObj, transaction.data)
-                            break;
-                        case "remove":
-                            operation = this.removeTransaction(transaction.model, transaction.findObj)
-                            break;
-                    }
-
-                    return operation.then((query) => {
-                        final.push(query)
-                        return final
-                    })
-
+                return operation.then((query) => {
+                    this.rollbackIndex = index
+                    final.push(query)
+                    return final
                 })
 
-            }, Promise.resolve())
+            })
 
-        } catch (err) {
-            console.log("ERROR => ", err)
-            // this.rollback(err)
-        }
+        }, Promise.resolve())
+
     }
 
     /**
      * Rollback the executed transactions if any error occurred.
      */
     private rollback(err) {
-        const deferredQueries = []
-        try {
-            this.transactions.forEach((transaction) => {
-                switch (transaction.type) {
+
+        let transactionsToRollback = this.transactions.slice(0, this.rollbackIndex)
+
+        transactionsToRollback.reverse()
+
+        const final = []
+
+        return transactionsToRollback.reduce((promise, transaction, index) => {
+
+            return promise.then((result) => {
+
+                let operation: any = {}
+
+                switch (transaction.rollbackType) {
                     case "insert":
-                        // Rollback remove with insert
-                        transaction.oldModels.forEach((oldModel) => {
-                            deferredQueries.push(this.insertTransaction(transaction.model, oldModel))
-                        })
+                        operation = this.insertTransaction(transaction.model, transaction.oldModel)
                         break;
                     case "update":
-                        // Rollback update with update
-                        transaction.oldModels.forEach((oldModel) => {
-                            const find = {
-                                _id: oldModel._id
-                            }
-                            deferredQueries.push(this.updateTransaction(transaction.model, find, oldModel))
-                        })
+                        operation = this.updateTransaction(transaction.model, transaction.findObj, transaction.data)
                         break;
                     case "remove":
-                        // Rollback insert with remove
-                        transaction.oldModels.forEach((oldModel) => {
-                            const find = {
-                                _id: oldModel._id
-                            }
-                            deferredQueries.push(this.removeTransaction(transaction.model, find))
-                        })
+                        operation = this.removeTransaction(transaction.model, transaction.findObj)
                         break;
                 }
+
+                return operation.then((query) => {
+                    this.rollbackIndex = index
+                    final.push(query)
+                    return final
+                })
+
             })
-            return Promise.all(deferredQueries)
-                .then((data) => {
-                    console.log("Rollback return data => ", data);
-                })
-                .catch((error) => {
-                    console.log("Rollback error data => ", error);
-                    return error
-                })
-        } catch (err) {
-            console.error(err);
-        }
+
+        }, Promise.resolve())
+
+        this.transactions.forEach((transaction) => {
+            switch (transaction.type) {
+                case "insert":
+                    // Rollback remove with insert
+                    transaction.oldModels.forEach((oldModel) => {
+                        deferredQueries.push(this.insertTransaction(transaction.model, oldModel))
+                    })
+                    break;
+                case "update":
+                    // Rollback update with update
+                    transaction.oldModels.forEach((oldModel) => {
+                        const find = {
+                            _id: oldModel._id
+                        }
+                        deferredQueries.push(this.updateTransaction(transaction.model, find, oldModel))
+                    })
+                    break;
+                case "remove":
+                    // Rollback insert with remove
+                    transaction.oldModels.forEach((oldModel) => {
+                        const find = {
+                            _id: oldModel._id
+                        }
+                        deferredQueries.push(this.removeTransaction(transaction.model, find))
+                    })
+                    break;
+            }
+        })
+        return Promise.all(deferredQueries)
+            .then((data) => {
+                console.log("Rollback return data => ", data);
+            })
+            .catch((error) => {
+                console.log("Rollback error data => ", error);
+                return error
+            })
+
     }
 
     private insertTransaction(model, data) {
         return new Promise((resolve, reject) => {
-            model.create(data, (err, data) => {
+            model.create(data, (err, result) => {
                 if (err) {
-                    return reject({ error: err, model, object: data })
+                    return reject(this.transactionError(err, data))
                 } else {
-                    console.log("Insert success => ", data)
 
-                    return resolve(data)
+                    return resolve(result)
                 }
             });
         });
@@ -230,32 +253,46 @@ export default class Transaction {
 
     private updateTransaction(model, find, data) {
         return new Promise((resolve, reject) => {
-            model.findOneAndUpdate(find, data, { new: true }, (err, data) => {
+            model.findOneAndUpdate(find, data, { new: true }, (err, result) => {
+
                 if (err) {
-                    return reject({ error: err, model, find, object: data })
+                    return reject(this.transactionError(err, { find, data }))
                 } else {
-                    if (!data) {
-                        return reject({ find, data })
+                    if (!result) {
+                        return reject(this.transactionError(new Error('Entity not found'), { find, data }))
                     }
-                    return resolve(data)
+                    return resolve(result)
                 }
+
             });
         });
     }
 
     private removeTransaction(model, find) {
         return new Promise((resolve, reject) => {
+
             model.remove(find, (err, data) => {
                 if (err) {
-                    return reject({ error: err, model, object: data })
+                    return reject(this.transactionError(err, find))
                 } else {
                     if (data.result.n === 0) {
-                        return reject({ find, data })
+                        return reject(this.transactionError(new Error('Entity not found'), find))
+                    } else {
+                        return resolve(data.result)
                     }
-                    return resolve(data.result)
                 }
             });
+
         });
+    }
+
+    private transactionError(error, data) {
+        return {
+            data,
+            error,
+            executedTransactions: this.rollbackIndex + 1,
+            remainingTransactions: this.transactions.length - (this.rollbackIndex + 1),
+        }
     }
 
 }
