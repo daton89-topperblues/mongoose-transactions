@@ -4,7 +4,7 @@ import * as mongoose from "mongoose";
 export default class Transaction {
 
     /** Index used for retrieve the executed transaction in the run */
-    public rollbackIndex = 0
+    private rollbackIndex = 0
 
     /** The actions to execute on mongoose collections when transaction run is called */
     private transactions: Array<{
@@ -19,7 +19,7 @@ export default class Transaction {
         /** The mongoose model instance before transaction if exists */
         oldModel: any,
         /** The id of the object */
-        findId: string,
+        findId: any,
         /** The data */
         data: any
     }> = [];
@@ -53,7 +53,7 @@ export default class Transaction {
 
         const transactionObj = {
             data,
-            findId: "",
+            findId: data._id,
             model,
             modelName,
             oldModel: null,
@@ -163,9 +163,9 @@ export default class Transaction {
     /**
      * Rollback the executed transactions if any error occurred.
      */
-    private rollback(err) {
+    public rollback() {
 
-        const transactionsToRollback = this.transactions.slice(0, this.rollbackIndex)
+        const transactionsToRollback: any = this.transactions.slice(0, this.rollbackIndex)
 
         transactionsToRollback.reverse()
 
@@ -190,7 +190,6 @@ export default class Transaction {
                 }
 
                 return operation.then((query) => {
-                    this.rollbackIndex = index
                     final.push(query)
                     return final
                 })
