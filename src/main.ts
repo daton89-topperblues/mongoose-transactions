@@ -35,6 +35,7 @@ export default class Transaction {
      */
     public clean() {
         this.transactions = [];
+        this.rollbackIndex = 0
     }
 
     /**
