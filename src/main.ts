@@ -239,11 +239,17 @@ export default class Transaction {
         return new Promise((resolve, reject) => {
 
             model.findByIdAndRemove(find, (err, data) => {
+
                 if (err) {
                     return reject(this.transactionError(err, find))
                 } else {
 
-                    return resolve(data.result)
+                    if (data == null) {
+                        return reject(this.transactionError(new Error('Entity not found'), find))
+                    } else {
+                        return resolve(data.result)
+                    }
+
                 }
             });
 

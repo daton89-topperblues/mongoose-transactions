@@ -91,9 +91,9 @@ describe('Transaction run ', () => {
             name: 'Nicola',
         }
 
-        transaction.insert(person, tonyObject)
+        const personId = transaction.insert(person, tonyObject)
 
-        transaction.update(person, tonyObject, nicolaObject)
+        transaction.update(person, personId, nicolaObject)
 
         const final = await transaction.run()
 
@@ -123,11 +123,11 @@ describe('Transaction run ', () => {
             name: 'Alice',
         }
 
-        transaction.insert(person, bobObject)
+        const personId = transaction.insert(person, bobObject)
 
-        transaction.update(person, bobObject, aliceObject)
+        transaction.update(person, personId, aliceObject)
 
-        transaction.remove(person, aliceObject)
+        transaction.remove(person, personId)
 
         const final = await transaction.run()
 
@@ -159,11 +159,15 @@ describe('Transaction run ', () => {
             name: 'Alice',
         }
 
-        transaction.insert(person, bobObject)
+        const personId = transaction.insert(person, bobObject)
 
-        transaction.update(person, bobObject, aliceObject)
+        transaction.update(person, personId, aliceObject)
 
-        transaction.remove(person, { name: 'pippo' })
+        const failObjectId = new mongoose.Types.ObjectId()
+
+        transaction.remove(person, failObjectId)
+
+        expect(personId).not.toEqual(failObjectId)
 
         try {
 
