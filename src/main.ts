@@ -19,7 +19,7 @@ export default class Transaction {
         /** The mongoose model instance before transaction if exists */
         oldModels: any,
         /** The object ... */
-        findObj: object,
+        findId: string,
         /** The array of data ... */
         data: any
     }> = [];
@@ -53,7 +53,7 @@ export default class Transaction {
 
         const transactionObj = {
             data,
-            findObj: {},
+            findId: "",
             model,
             modelName,
             oldModels: null,
@@ -70,7 +70,7 @@ export default class Transaction {
     /**
      * Create the findOneAndUpdate transaction and rollback states.
      * @param modelName - The string containing the mongoose model name.
-     * @param findObj - The object containing data to find mongoose collection.
+     * @param findId - The id of the object to update.
      * @param dataObj - The object containing data to update into mongoose model.
      * @param options - The object containing the options for update query:
      *                     safe (boolean) safe mode (defaults to value set in schema (true))
@@ -84,15 +84,14 @@ export default class Transaction {
      *                     strict (boolean) overrides the strict option for this update
      *                     overwrite (boolean) disables update-only mode, allowing you to overwrite the doc (false)
      */
-    public update(modelName, findObj, data, options = {}) {
+    public update(modelName, findId, data, options = {}) {
         const model = mongoose.model(modelName);
-        const oldModels = model.find(findObj);
         const transactionObj = {
             data,
-            findObj,
+            findId,
             model,
             modelName,
-            oldModels,
+            oldModels: null,
             rollbackType: "update",
             type: "update",
         };
@@ -106,15 +105,14 @@ export default class Transaction {
      * @param modelName - The string containing the mongoose model name.
      * @param findObj - The object containing data to find mongoose collection.
      */
-    public remove(modelName, findObj) {
+    public remove(modelName, findId) {
         const model = mongoose.model(modelName);
-        const oldModels = model.findOne(findObj);
         const transactionObj = {
             data: null,
-            findObj,
+            findId,
             model,
             modelName,
-            oldModels,
+            oldModels: null,
             rollbackType: "insert",
             type: "remove",
         };
@@ -141,10 +139,10 @@ export default class Transaction {
                         operation = this.insertTransaction(transaction.model, transaction.data)
                         break;
                     case "update":
-                        operation = this.updateTransaction(transaction.model, transaction.findObj, transaction.data)
+                        operation = this.updateTransaction(transaction.model, transaction.findId, transaction.data)
                         break;
                     case "remove":
-                        operation = this.removeTransaction(transaction.model, transaction.findObj)
+                        operation = this.removeTransaction(transaction.model, transaction.findId)
                         break;
                 }
 
@@ -253,7 +251,7 @@ export default class Transaction {
 
     private updateTransaction(model, find, data) {
         return new Promise((resolve, reject) => {
-            model.findOneAndUpdate(find, data, { new: true }, (err, result) => {
+            model.findByIdAndUpdate(find, data, { new: true }, (err, result) => {
 
                 if (err) {
                     return reject(this.transactionError(err, { find, data }))
@@ -271,7 +269,7 @@ export default class Transaction {
     private removeTransaction(model, find) {
         return new Promise((resolve, reject) => {
 
-            model.remove(find, (err, data) => {
+            model.findByIdAndRemove(find, (err, data) => {
                 if (err) {
                     return reject(this.transactionError(err, find))
                 } else {
