@@ -115,7 +115,7 @@ describe('Transaction run ', function () {
                         name: 'Jonathan'
                     };
                     transaction.insert(person, jonathanObject);
-                    return [4 /*yield*/, transaction.run()];
+                    return [4 /*yield*/, transaction.run().catch(console.error)];
                 case 1:
                     final = _a.sent();
                     return [4 /*yield*/, Person.findOne(jonathanObject).exec()];
@@ -130,7 +130,7 @@ describe('Transaction run ', function () {
         });
     }); });
     test('update', function () { return __awaiter(_this, void 0, void 0, function () {
-        var person, tonyObject, nicolaObject, final, nicola;
+        var person, tonyObject, nicolaObject, personId, final, nicola;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -143,8 +143,8 @@ describe('Transaction run ', function () {
                         age: 32,
                         name: 'Nicola',
                     };
-                    transaction.insert(person, tonyObject);
-                    transaction.update(person, tonyObject, nicolaObject);
+                    personId = transaction.insert(person, tonyObject);
+                    transaction.update(person, personId, nicolaObject);
                     return [4 /*yield*/, transaction.run()];
                 case 1:
                     final = _a.sent();
@@ -160,7 +160,7 @@ describe('Transaction run ', function () {
         });
     }); });
     test('remove', function () { return __awaiter(_this, void 0, void 0, function () {
-        var person, bobObject, aliceObject, final, bob, alice;
+        var person, bobObject, aliceObject, personId, final, bob, alice;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -173,9 +173,9 @@ describe('Transaction run ', function () {
                         age: 23,
                         name: 'Alice',
                     };
-                    transaction.insert(person, bobObject);
-                    transaction.update(person, bobObject, aliceObject);
-                    transaction.remove(person, aliceObject);
+                    personId = transaction.insert(person, bobObject);
+                    transaction.update(person, personId, aliceObject);
+                    transaction.remove(person, personId);
                     return [4 /*yield*/, transaction.run()];
                 case 1:
                     final = _a.sent();
@@ -190,6 +190,43 @@ describe('Transaction run ', function () {
                     expect(alice).toBeNull();
                     expect(bob).toBeNull();
                     return [2 /*return*/];
+            }
+        });
+    }); });
+    test('Fail remove', function () { return __awaiter(_this, void 0, void 0, function () {
+        var person, bobObject, aliceObject, personId, failObjectId, final, error_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    person = "Person";
+                    bobObject = {
+                        age: 45,
+                        name: 'Bob',
+                    };
+                    aliceObject = {
+                        age: 23,
+                        name: 'Alice',
+                    };
+                    personId = transaction.insert(person, bobObject);
+                    transaction.update(person, personId, aliceObject);
+                    failObjectId = new mongoose.Types.ObjectId();
+                    transaction.remove(person, failObjectId);
+                    expect(personId).not.toEqual(failObjectId);
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, transaction.run()];
+                case 2:
+                    final = _a.sent();
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_1 = _a.sent();
+                    expect(error_1.executedTransactions).toEqual(2);
+                    expect(error_1.remainingTransactions).toEqual(1);
+                    expect(error_1.error.message).toBe('Entity not found');
+                    expect(error_1.data).toEqual(failObjectId);
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
             }
         });
     }); });

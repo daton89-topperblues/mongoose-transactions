@@ -49,7 +49,7 @@
     },
     "testRegex": "/__tests__/.*\\.(ts|tsx|js)$",
     "verbose": true,
-    "notify": true,
-    "bail": true
+    "notify": false,
+    "bail": false
   }
 }

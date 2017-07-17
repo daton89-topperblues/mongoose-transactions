@@ -181,7 +181,7 @@ describe('Transaction run ', () => {
 
             expect(error.error.message).toBe('Entity not found')
 
-            expect(error.data).toEqual({ name: 'pippo' })
+            expect(error.data).toEqual(failObjectId)
         }
 
     })
