@@ -48,8 +48,7 @@ export default class Transaction {
         const model = mongoose.model(modelName);
 
         if (!data._id) {
-            const id = new mongoose.Types.ObjectId();
-            data._id = id;
+            data._id = new mongoose.Types.ObjectId();
         }
 
         const transactionObj = {
@@ -170,11 +169,15 @@ export default class Transaction {
     /**
      * Rollback the executed transactions if any error occurred.
      */
-    public rollback() {
+    public rollback(howmany = this.rollbackIndex + 1) {
 
-        const transactionsToRollback: any = this.transactions.slice(0, this.rollbackIndex + 1)
+        let transactionsToRollback: any = this.transactions.slice(0, this.rollbackIndex + 1)
 
         transactionsToRollback.reverse()
+
+        if (howmany !== this.rollbackIndex + 1) {
+            transactionsToRollback = transactionsToRollback.slice(0, howmany)
+        }
 
         const final = []
 
@@ -208,7 +211,7 @@ export default class Transaction {
     }
 
     private async findByIdTransaction(model, findId) {
-        return await model.findById(findId).exec();
+        return await model.findById(findId).lean().exec();
     }
 
     private insertTransaction(model, data) {
@@ -223,15 +226,15 @@ export default class Transaction {
         });
     }
 
-    private updateTransaction(model, find, data) {
+    private updateTransaction(model, id, data) {
         return new Promise((resolve, reject) => {
-            model.findByIdAndUpdate(find, data, { new: false }, (err, result) => {
+            model.findByIdAndUpdate(id, data, { new: false }, (err, result) => {
 
                 if (err) {
-                    return reject(this.transactionError(err, { find, data }))
+                    return reject(this.transactionError(err, { id, data }))
                 } else {
                     if (!result) {
-                        return reject(this.transactionError(new Error('Entity not found'), { find, data }))
+                        return reject(this.transactionError(new Error('Entity not found'), { id, data }))
                     }
                     return resolve(result)
                 }
@@ -240,17 +243,17 @@ export default class Transaction {
         });
     }
 
-    private removeTransaction(model, find) {
+    private removeTransaction(model, id) {
         return new Promise((resolve, reject) => {
 
-            model.findByIdAndRemove(find, (err, data) => {
+            model.findByIdAndRemove(id, (err, data) => {
 
                 if (err) {
-                    return reject(this.transactionError(err, find))
+                    return reject(this.transactionError(err, id))
                 } else {
 
                     if (data == null) {
-                        return reject(this.transactionError(new Error('Entity not found'), find))
+                        return reject(this.transactionError(new Error('Entity not found'), id))
                     } else {
                         return resolve(data)
                     }
