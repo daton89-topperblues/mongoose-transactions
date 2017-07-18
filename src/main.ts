@@ -41,8 +41,8 @@ export default class Transaction {
     /**
      * Create the insert transaction and rollback states.
      * @param modelName - The string containing the mongoose model name.
-     * @param data - The object or array containing data to insert into mongoose model.
-     * @returns id - The id of the bject to insert.
+     * @param data - The object containing data to insert into mongoose model.
+     * @returns id - The id of the object to insert.
      */
     public insert(modelName, data) {
         const model = mongoose.model(modelName);
@@ -72,17 +72,6 @@ export default class Transaction {
      * @param modelName - The string containing the mongoose model name.
      * @param findId - The id of the object to update.
      * @param dataObj - The object containing data to update into mongoose model.
-     * @param options - The object containing the options for update query:
-     *                     safe (boolean) safe mode (defaults to value set in schema (true))
-     *                     upsert (boolean) whether to create the doc if it doesn't match (false)
-     *                     multi (boolean) whether multiple documents should be updated (false)
-     *                     runValidators: if true, runs update validators on this command.
-     *                          Update validators validate the update operation against the model's schema.
-     *                     setDefaultsOnInsert: if this and upsert are true, mongoose will apply the defaults
-     *                          specified in the model's schema if a new document is created. This option only works
-     *                          on MongoDB >= 2.4 because it relies on MongoDB's $setOnInsert operator.
-     *                     strict (boolean) overrides the strict option for this update
-     *                     overwrite (boolean) disables update-only mode, allowing you to overwrite the doc (false)
      */
     public update(modelName, findId, data, options = {}) {
         const model = mongoose.model(modelName);
@@ -122,7 +111,13 @@ export default class Transaction {
     }
 
     /**
-     * Run the transaction and check errors.
+     * Run the operations and check errors.
+     * @returns Array of objects - The objects returned by operations
+     *          Error - The error object containing:
+     *                  data - the input data of operation
+     *                  error - the error returned by the operation
+     *                  executedTransactions - the number of executed operations
+     *                  remainingTransactions - the number of the not executed operations
      */
     public run() {
 
@@ -167,7 +162,15 @@ export default class Transaction {
     }
 
     /**
-     * Rollback the executed transactions if any error occurred.
+     * Rollback the executed operations if any error occurred.
+     * @param   stepNumber - (optional) the number of the operation to rollback - default to length of
+     *                            operation successfully runned
+     * @returns Array of objects - The objects returned by rollback operations
+     *          Error - The error object containing:
+     *                  data - the input data of operation
+     *                  error - the error returned by the operation
+     *                  executedTransactions - the number of rollbacked operations
+     *                  remainingTransactions - the number of the not rollbacked operations
      */
     public rollback(howmany = this.rollbackIndex + 1) {
 
