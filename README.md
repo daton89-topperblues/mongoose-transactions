@@ -1,3 +1,6 @@
+![nodejs](https://github.com/daton89-topperblues/mongoose-transactions/docs/img/nodejs.png)
+![mongoose](https://github.com/daton89-topperblues/mongoose-transactions/docs/img/mongoosejs.png)
+![js](https://github.com/daton89-topperblues/mongoose-transactions/docs/img/nodejs.png)
 # Introduction
 ###### Atomicity and Transactions for mongoose
 A transaction is a sequential group of database manipulation operations, which is performed as if it were one single work unit. In other words, a transaction will never be complete unless each individual operation within the group is successful. If any operation within the transaction fails, the entire transaction will fail.
