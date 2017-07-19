@@ -1,3 +1,4 @@
+![travis](https://travis-ci.org/daton89-topperblues/mongoose-transactions.svg?branch=master)
 ![mongoose-transactions](https://raw.githubusercontent.com/daton89-topperblues/mongoose-transactions/master/docs/img/mongoose-transactions.png)
 # Introduction
 ###### Atomicity and Transactions for mongoose
