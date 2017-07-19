@@ -2,7 +2,7 @@
   "name": "mongoose-transactions",
   "version": "1.0.4",
   "description": "Atomicity and Transactions for mongoose",
-  "main": "dist/main.js",
+  "main": "index.js",
   "scripts": {
     "lint": "tslint -c tslint.json 'src/**/*.ts' '__tests__/**/*.ts'",
     "pretest": "npm run lint",
@@ -13,7 +13,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/topperblues/mongoose-transactions.git"
+    "url": "git+https://github.com/daton89-topperblues/mongoose-transactions.git"
   },
   "keywords": [
     "mongoose",
@@ -22,9 +22,9 @@
   "author": "Nicola Bonavita @topperblues, Antonio D'Angelo @daton89",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/topperblues/mongoose-transactions/issues"
+    "url": "https://github.com/daton89-topperblues/mongoose-transactions/issues"
   },
-  "homepage": "https://github.com/topperblues/mongoose-transactions#readme",
+  "homepage": "https://github.com/daton89-topperblues/mongoose-transactions#readme",
   "dependencies": {
     "mongoose": "^4.11.1"
   },
