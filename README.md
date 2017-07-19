@@ -8,7 +8,12 @@ With this module, you can :
 Practically, you will club many MongoDB queries into a group and you will execute all of them together as a part of a transaction.
 
 ### Getting started
-Install module in your project: 
+Install module: 
+```sh
+$ npm i mongoose-transactions
+```
+
+Install and save module in your project: 
 ```sh
 $ npm i -S mongoose-transactions
 ```
@@ -83,31 +88,38 @@ Full example:
 const Transaction = require('mongoose-transactions') 
 const transaction = new Transaction()
 
-const person: string = "Person" // the name of the compiled model
+const person = "Person" // the name of the registered schema
 
-const jonathanObject: any = {
+const jonathanObject = {
     age: 18,
     name: 'Jonathan'
 }
-const aliceObject: any = {
+const aliceObject = {
     age: 23,
     name: 'Alice',
 }
-try {
-    const jonathanId = transaction.insert(person, jonathanObject)
-    transaction.update(person, jonathanId, aliceObject)
-    transaction.remove(person, 'fakeId') // this operation fail
-    const final = await transaction.run()
-    // expect(final[0].name).toBe('Jonathan')
-} catch (error) {
-    console.error(error)
-    const rollbackObj = await transaction.rollback().catch(console.error)
-    transaction.clean()
-    //  expect(rollbacks[0].name).toBe('Alice')
-    //  expect(rollbacks[0].age).toBe(aliceObject.age)
-    //  expect(rollbacks[1].name).toBe('Jonathan')
-    //  expect(rollbacks[1].age).toBe(bobObject.age)    
+
+async function start () {
+    try {
+        const jonathanId = transaction.insert(person, jonathanObject)
+        transaction.update(person, jonathanId, aliceObject)
+        transaction.remove(person, 'fakeId') // this operation fail
+        const final = await transaction.run()
+        // expect(final[0].name).toBe('Jonathan')
+    } catch (error) {
+        console.error(error)
+        const rollbackObj = await transaction.rollback().catch(console.error)
+        transaction.clean()
+        //  expect(rollbacks[0].name).toBe('Alice')
+        //  expect(rollbacks[0].age).toBe(aliceObject.age)
+        //  expect(rollbacks[1].name).toBe('Jonathan')
+        //  expect(rollbacks[1].age).toBe(bobObject.age)    
+    }
 }
+
+start()
+
+
 ```
 
 See tests for more examples
@@ -121,13 +133,19 @@ $ cd mongoose-transactions
 $ npm i
 ```
 
-Currently runs with:
+Fork project and open pull request 
+
+Currently development runs with:
 
 Node.js v8.1.4
+
 Mongoose v4.11.1
+
 Typescript v2.4.1
+
 Jest v20.0.4
 
 ### Contributors 
 [@topperblues](https://github.com/topperblues) Nicola Bonavita
+
 [@daton89](https://github.com/daton89) Toni D'Angelo
