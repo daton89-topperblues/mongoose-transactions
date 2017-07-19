@@ -1,3 +1,5 @@
 'use strict';
 
-module.exports = require('./dist/src/main')
+const Transaction = require('./dist/src/main').default
+
+module.exports = Transaction
