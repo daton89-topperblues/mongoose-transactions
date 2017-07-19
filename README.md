@@ -147,6 +147,10 @@ Typescript v2.4.1
 
 Jest v20.0.4
 
+### Changelog
+
+1.0.4 fixed exports default error 
+
 ### Contributors 
 [@topperblues](https://github.com/topperblues) Nicola Bonavita
 
