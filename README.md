@@ -122,7 +122,9 @@ start()
 
 ```
 
-See tests for more examples
+See tests folder for more examples
+
+Feel free to open issues, fork project, and collaborate with us!
 
 ### Contribute
 
