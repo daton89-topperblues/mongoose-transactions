@@ -50,8 +50,12 @@ export default class Transaction {
      */
     constructor(useDb = false, transactionId = "") {
         this.useDb = useDb
-        if (this.useDb && transactionId !== "") {
-            this.loadDbTransaction(transactionId)
+        if (this.useDb) {
+            if (transactionId !== "") {
+                this.loadDbTransaction(transactionId)
+            } else {
+                this.transactionId = this.createTransaction()
+            }
         }
     }
 
@@ -85,6 +89,17 @@ export default class Transaction {
         } else {
             return Model.findByIdAndRemove(transactionId).lean().exec()
         }
+
+    }
+
+    /**
+     * Remove transaction from transaction collection on db,
+     * if the transactionId param is null, remove all documents in the collection.
+     * @param transactionId - Optional. The id of the transaction to remove (default null).
+     */
+    public async getTransactionId() {
+        // TODO:this!
+        return this.transactionId;
 
     }
 
@@ -223,10 +238,6 @@ export default class Transaction {
 
         const final = []
 
-        if (this.useDb) {
-            this.transactionId = this.createTransaction()
-        }
-
         return this.operations.reduce((promise, transaction, index) => {
 
             return promise.then(async (result) => {
@@ -256,7 +267,7 @@ export default class Transaction {
                 return operation.then((query) => {
                     this.rollbackIndex = index
                     this.updateOperationStatus(Status.success, index)
-                    if (index === this.operations.length) {
+                    if (index === this.operations.length - 1) {
                         this.updateDbTransaction(Status.success)
                     }
                     final.push(query)
@@ -318,7 +329,7 @@ export default class Transaction {
                 return operation.then((query) => {
                     this.rollbackIndex = index
                     this.updateOperationStatus(Status.rollback, index)
-                    if (index === this.operations.length) {
+                    if (index === this.operations.length - 1) {
                         this.updateDbTransaction(Status.rollback)
                     }
                     final.push(query)
