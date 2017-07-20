@@ -1,5 +1,9 @@
-![travis](https://travis-ci.org/daton89-topperblues/mongoose-transactions.svg?branch=master)
-![mongoose-transactions](https://raw.githubusercontent.com/daton89-topperblues/mongoose-transactions/master/docs/img/mongoose-transactions.png)
+[![travis](https://travis-ci.org/daton89-topperblues/mongoose-transactions.svg?branch=master)](https://www.npmjs.com/package/mongoose-transactions)
+[![dm](https://img.shields.io/npm/dm/mongoose-transactions.svg)](https://www.npmjs.com/package/mongoose-transactions)
+[![version](https://img.shields.io/npm/v/mongoose-transactions.svg)](https://www.npmjs.com/package/mongoose-transactions)
+[![GitHub stars](https://img.shields.io/github/stars/daton89-topperblues/mongoose-transactions.svg?style=social&label=Star)](https://www.github.com/daton89-topperblues/mongoose-transactions)
+[![GitHub forks](https://img.shields.io/github/forks/daton89-topperblues/mongoose-transactions.svg?style=social&label=Fork)](https://github.com/daton89-topperblues/mongoose-transactions)
+[![mongoose-transactions](https://raw.githubusercontent.com/daton89-topperblues/mongoose-transactions/master/docs/img/mongoose-transactions.png)](https://www.npmjs.com/package/mongoose-transactions)
 # Introduction
 ###### Atomicity and Transactions for mongoose
 A transaction is a sequential group of database manipulation operations, which is performed as if it were one single work unit. In other words, a transaction will never be complete unless each individual operation within the group is successful. If any operation within the transaction fails, the entire transaction will fail.
@@ -131,7 +135,7 @@ Feel free to open issues, fork project, and collaborate with us!
 
 Clone repository locally and install dependencies:
 ```sh
-$ git clone https://github.com/topperblues/mongoose-transactions.git
+$ git clone https://github.com/daton89-topperblues/mongoose-transactions.git
 $ cd mongoose-transactions
 $ npm i
 ```
