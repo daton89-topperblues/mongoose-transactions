@@ -1,4 +1,8 @@
 ![travis](https://travis-ci.org/daton89-topperblues/mongoose-transactions.svg?branch=master)
+![dm](https://img.shields.io/npm/dm/mongoose-transactions.svg)
+![version](https://img.shields.io/npm/v/mongoose-transactions.svg)
+![GitHub stars](https://img.shields.io/github/stars/daton89-topperblues/mongoose-transactions.svg?style=social&label=Star)
+![GitHub forks](https://img.shields.io/github/forks/daton89-topperblues/mongoose-transactions.svg?style=social&label=Fork)
 ![mongoose-transactions](https://raw.githubusercontent.com/daton89-topperblues/mongoose-transactions/master/docs/img/mongoose-transactions.png)
 # Introduction
 ###### Atomicity and Transactions for mongoose
