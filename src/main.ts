@@ -1,4 +1,14 @@
 import * as mongoose from "mongoose";
+import Model from "./mongooseTransactions.collection"
+
+/** The operations and transaction possible states */
+const enum Status {
+    pending = "Pending",
+    success = "Success",
+    error = "Error",
+    rollback = "Rollback",
+    errorRollback = "ErrorRollback"
+}
 
 /** Class representing a transaction. */
 export default class Transaction {
@@ -6,8 +16,14 @@ export default class Transaction {
     /** Index used for retrieve the executed transaction in the run */
     private rollbackIndex = 0
 
+    /** Boolean value for enable or disable saving transaction on db */
+    private useDb: boolean = false
+
+    /** The id of the current transaction document on database */
+    private transactionId: any = ""
+
     /** The actions to execute on mongoose collections when transaction run is called */
-    private transactions: Array<{
+    private operations: Array<{
         /** The transaction type to run */
         type: string,
         /** The transaction type to execute for rollback */
@@ -21,21 +37,102 @@ export default class Transaction {
         /** The id of the object */
         findId: any,
         /** The data */
-        data: any
+        data: any,
+        /** The current status of the operation */
+        status: Status
     }> = [];
 
     /**
      * Create a transaction.
-     * @param parameters - The parameters
+     * @param useDb - The boolean parameter allow to use transaction collection on db (default false)
+     * @param transactionId - The id of the transaction to load, load the transaction
+     *                        from db if you set useDb true (default "")
      */
-    // constructor() {}
+    constructor(useDb = false, transactionId = "") {
+        this.useDb = useDb
+        if (this.useDb && transactionId !== "") {
+            this.loadDbTransaction(transactionId)
+        }
+    }
 
     /**
-     * Clean the transactions object to begin a new transaction on the same instance.
+     * Load transaction from transaction collection on db.
+     * @param transactionId - The id of the transaction to load.
+     * @trows Error - Throws error if the transaction is not found
+     */
+    public async loadDbTransaction(transactionId) {
+
+        const loadedTransaction: any = await Model.findById(transactionId).lean().exec()
+        if (loadedTransaction.operations) {
+            this.operations = loadedTransaction.operations
+            this.transactionId = transactionId
+        } else {
+            throw new Error("Transaction not found")
+        }
+
+    }
+
+    /**
+     * Remove transaction from transaction collection on db,
+     * if the transactionId param is null, remove all documents in the collection.
+     * @param transactionId - Optional. The id of the transaction to remove (default null).
+     */
+    public async removeDbTransaction(transactionId = null) {
+
+        if (transactionId === null) {
+
+            return Model.remove({}).lean().exec()
+        } else {
+            return Model.findByIdAndRemove(transactionId).lean().exec()
+        }
+
+    }
+
+    /**
+     * Remove transaction from transaction collection on db,
+     * if the transactionId param is null, remove all documents in the collection.
+     * @param index - Optional. If the index is passed return the elemet at index position
+     *                          else return all elements (default null).
+     * @param transactionId - Optional. If the transaction id is passed return the elements of the transaction id
+     *                                  else return the elements of current transaction (default null).
+     */
+    public async getOperations(index = null, transactionId = null) {
+
+        if (transactionId === null || transactionId === false) {
+            if (index === null || index === false) {
+                return this.operations
+            } else {
+                if (index < this.operations.length) {
+                    return this.operations[index]
+                } else {
+                    throw new Error('Index exceed operations length')
+                }
+            }
+        } else {
+            if (index === null || index === false) {
+                return Model.findById(transactionId).lean().exec()
+            } else {
+                const transactions: any = await Model.findById(transactionId).lean().exec()
+                if (index < transactions.operations.length) {
+                    return transactions.operations[index]
+                } else {
+                    throw new Error('Index exceed operations length')
+                }
+            }
+        }
+
+    }
+
+    /**
+     * Clean the operations object to begin a new transaction on the same instance.
      */
     public clean() {
-        this.transactions = [];
+        this.operations = [];
         this.rollbackIndex = 0
+        this.transactionId = ""
+        if (this.useDb) {
+            this.transactionId = this.createTransaction()
+        }
     }
 
     /**
@@ -58,10 +155,11 @@ export default class Transaction {
             modelName,
             oldModel: null,
             rollbackType: "remove",
+            status: Status.pending,
             type: "insert",
         };
 
-        this.transactions.push(transactionObj);
+        this.operations.push(transactionObj);
 
         return data._id;
 
@@ -82,10 +180,11 @@ export default class Transaction {
             modelName,
             oldModel: null,
             rollbackType: "update",
+            status: Status.pending,
             type: "update",
         };
 
-        this.transactions.push(transactionObj);
+        this.operations.push(transactionObj);
 
     }
 
@@ -103,10 +202,11 @@ export default class Transaction {
             modelName,
             oldModel: null,
             rollbackType: "insert",
+            status: Status.pending,
             type: "remove",
         };
 
-        this.transactions.push(transactionObj);
+        this.operations.push(transactionObj);
 
     }
 
@@ -123,7 +223,11 @@ export default class Transaction {
 
         const final = []
 
-        return this.transactions.reduce((promise, transaction, index) => {
+        if (this.useDb) {
+            this.transactionId = this.createTransaction()
+        }
+
+        return this.operations.reduce((promise, transaction, index) => {
 
             return promise.then(async (result) => {
 
@@ -151,8 +255,17 @@ export default class Transaction {
 
                 return operation.then((query) => {
                     this.rollbackIndex = index
+                    this.updateOperationStatus(Status.success, index)
+                    if (index === this.operations.length) {
+                        this.updateDbTransaction(Status.success)
+                    }
                     final.push(query)
                     return final
+
+                }).catch((err) => {
+                    this.updateOperationStatus(Status.error, index)
+                    this.updateDbTransaction(Status.error)
+                    throw err
                 })
 
             })
@@ -174,7 +287,7 @@ export default class Transaction {
      */
     public rollback(howmany = this.rollbackIndex + 1) {
 
-        let transactionsToRollback: any = this.transactions.slice(0, this.rollbackIndex + 1)
+        let transactionsToRollback: any = this.operations.slice(0, this.rollbackIndex + 1)
 
         transactionsToRollback.reverse()
 
@@ -203,8 +316,18 @@ export default class Transaction {
                 }
 
                 return operation.then((query) => {
+                    this.rollbackIndex = index
+                    this.updateOperationStatus(Status.rollback, index)
+                    if (index === this.operations.length) {
+                        this.updateDbTransaction(Status.rollback)
+                    }
                     final.push(query)
                     return final
+
+                }).catch((err) => {
+                    this.updateOperationStatus(Status.errorRollback, index)
+                    this.updateDbTransaction(Status.errorRollback)
+                    throw err
                 })
 
             })
@@ -272,7 +395,32 @@ export default class Transaction {
             data,
             error,
             executedTransactions: this.rollbackIndex + 1,
-            remainingTransactions: this.transactions.length - (this.rollbackIndex + 1),
+            remainingTransactions: this.operations.length - (this.rollbackIndex + 1),
+        }
+    }
+
+    private async createTransaction() {
+        if (this.useDb) {
+
+            const transaction = await Model.create({
+                operations: this.operations
+            })
+
+            this.transactionId = transaction._id
+        }
+    }
+
+    private async updateOperationStatus(status, index) {
+        this.operations[index].status = status
+    }
+
+    private async updateDbTransaction(status) {
+        if (this.useDb && this.transactionId !== "") {
+            return await Model.findByIdAndUpdate(
+                this.transactionId,
+                { operations: this.operations, status },
+                { new: true }
+            )
         }
     }
 
