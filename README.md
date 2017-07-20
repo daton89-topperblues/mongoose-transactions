@@ -131,7 +131,7 @@ Feel free to open issues, fork project, and collaborate with us!
 
 Clone repository locally and install dependencies:
 ```sh
-$ git clone https://github.com/topperblues/mongoose-transactions.git
+$ git clone https://github.com/daton89-topperblues/mongoose-transactions.git
 $ cd mongoose-transactions
 $ npm i
 ```
