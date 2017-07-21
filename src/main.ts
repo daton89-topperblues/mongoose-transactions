@@ -50,12 +50,26 @@ export default class Transaction {
      */
     constructor(useDb = false, transactionId = "") {
         this.useDb = useDb
+        // if (this.useDb) {
+        //     if (transactionId !== "") {
+        //         this.loadDbTransaction(transactionId)
+        //     } else {
+        //         this.transactionId = this.createTransaction()
+        //     }
+        // }
+    }
+
+    public async createTransaction() {
         if (this.useDb) {
-            if (transactionId !== "") {
-                this.loadDbTransaction(transactionId)
-            } else {
-                this.transactionId = this.createTransaction()
-            }
+
+            const transaction = await Model.create({
+                operations: this.operations
+            })
+
+            this.transactionId = transaction._id
+            return this.transactionId
+        } else {
+            throw new Error("You must set useDB true in the constructor")
         }
     }
 
@@ -67,7 +81,7 @@ export default class Transaction {
     public async loadDbTransaction(transactionId) {
 
         const loadedTransaction: any = await Model.findById(transactionId).lean().exec()
-        if (loadedTransaction.operations) {
+        if (loadedTransaction && loadedTransaction.operations) {
             this.operations = loadedTransaction.operations
             this.transactionId = transactionId
         } else {
@@ -85,9 +99,9 @@ export default class Transaction {
 
         if (transactionId === null) {
 
-            return Model.remove({}).lean().exec()
+            await Model.remove({}).exec()
         } else {
-            return Model.findByIdAndRemove(transactionId).lean().exec()
+            await Model.findByIdAndRemove(transactionId).exec()
         }
 
     }
@@ -97,7 +111,7 @@ export default class Transaction {
      * if the transactionId param is null, remove all documents in the collection.
      * @param transactionId - Optional. The id of the transaction to remove (default null).
      */
-    public async getTransactionId() {
+    public getTransactionId() {
         // TODO:this!
         return this.transactionId;
 
@@ -141,12 +155,12 @@ export default class Transaction {
     /**
      * Clean the operations object to begin a new transaction on the same instance.
      */
-    public clean() {
+    public async clean() {
         this.operations = [];
         this.rollbackIndex = 0
         this.transactionId = ""
         if (this.useDb) {
-            this.transactionId = this.createTransaction()
+            this.transactionId = await this.createTransaction()
         }
     }
 
@@ -407,17 +421,6 @@ export default class Transaction {
             error,
             executedTransactions: this.rollbackIndex + 1,
             remainingTransactions: this.operations.length - (this.rollbackIndex + 1),
-        }
-    }
-
-    private async createTransaction() {
-        if (this.useDb) {
-
-            const transaction = await Model.create({
-                operations: this.operations
-            })
-
-            this.transactionId = transaction._id
         }
     }
 
