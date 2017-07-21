@@ -433,7 +433,7 @@ export default class Transaction {
         }
     }
 
-    private async updateOperationStatus(status, index) {
+    private updateOperationStatus(status, index) {
         this.operations[index].status = status
     }
 
