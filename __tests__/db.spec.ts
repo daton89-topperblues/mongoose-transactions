@@ -85,4 +85,32 @@ describe('Transaction using DB ', () => {
 
     })
 
+    test('should insert, update and run storing it in database', async () => {
+
+        const person: string = 'Person'
+
+        const transId = await transaction.createTransaction()
+
+        const tonyObject: any = {
+            age: 28,
+            name: 'Tony'
+        }
+
+        const nicolaObject: any = {
+            age: 32,
+            name: 'Nicola',
+        }
+
+        transaction.insert(person, tonyObject)
+
+        transaction.update(person, nicolaObject)
+
+        try {
+            await transaction.run()
+        } catch (error) {
+            // console.error('run err =>', error)
+        }
+
+    })
+
 })
