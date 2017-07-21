@@ -86,7 +86,7 @@ export default class Transaction {
             this.transactionId = transactionId
             return loadedTransaction
         } else {
-            throw new Error("Transaction not found")
+            return null
         }
 
     }
