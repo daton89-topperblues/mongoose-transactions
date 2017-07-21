@@ -98,11 +98,14 @@ export default class Transaction {
      */
     public async removeDbTransaction(transactionId = null) {
 
-        if (transactionId === null) {
-
-            await Model.remove({}).exec()
-        } else {
-            await Model.findByIdAndRemove(transactionId).exec()
+        try {
+            if (transactionId === null) {
+                await Model.remove({}).exec()
+            } else {
+                await Model.findByIdAndRemove(transactionId).exec()
+            }
+        } catch (error) {
+            throw new Error('Fail remove transaction[s] in removeDbTransaction')
         }
 
     }
