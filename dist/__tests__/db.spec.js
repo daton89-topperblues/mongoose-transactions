@@ -132,7 +132,31 @@ describe('Transaction using DB ', function () {
         });
     }); });
     test('should create new transaction and remove it', function () { return __awaiter(_this, void 0, void 0, function () {
-        var person, transId, removed;
+        var person, transId, trans, _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    person = 'Person';
+                    return [4 /*yield*/, transaction.createTransaction()];
+                case 1:
+                    transId = _b.sent();
+                    return [4 /*yield*/, transaction.loadDbTransaction(transId)];
+                case 2:
+                    trans = _b.sent();
+                    expect(trans.status).toBe('pending');
+                    return [4 /*yield*/, transaction.removeDbTransaction(transId)];
+                case 3:
+                    _b.sent();
+                    _a = expect;
+                    return [4 /*yield*/, transaction.loadDbTransaction(transId)];
+                case 4:
+                    _a.apply(void 0, [_b.sent()]).toBeNull();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    test('should insert, update and run storing it in database', function () { return __awaiter(_this, void 0, void 0, function () {
+        var person, transId, tonyObject, nicolaObject, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -140,16 +164,27 @@ describe('Transaction using DB ', function () {
                     return [4 /*yield*/, transaction.createTransaction()];
                 case 1:
                     transId = _a.sent();
-                    console.log('transId =>', transId);
-                    return [4 /*yield*/, transaction.loadDbTransaction(transId)];
+                    tonyObject = {
+                        age: 28,
+                        name: 'Tony'
+                    };
+                    nicolaObject = {
+                        age: 32,
+                        name: 'Nicola',
+                    };
+                    transaction.insert(person, tonyObject);
+                    transaction.update(person, nicolaObject);
+                    _a.label = 2;
                 case 2:
-                    _a.sent();
-                    return [4 /*yield*/, transaction.removeDbTransaction(transId)
-                        // TODO: find transaction and check it is null
-                    ];
+                    _a.trys.push([2, 4, , 5]);
+                    return [4 /*yield*/, transaction.run()];
                 case 3:
-                    removed = _a.sent();
-                    return [2 /*return*/];
+                    _a.sent();
+                    return [3 /*break*/, 5];
+                case 4:
+                    error_1 = _a.sent();
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
             }
         });
     }); });

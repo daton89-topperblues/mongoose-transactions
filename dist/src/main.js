@@ -100,9 +100,11 @@ var Transaction = (function () {
                         if (loadedTransaction && loadedTransaction.operations) {
                             this.operations = loadedTransaction.operations;
                             this.transactionId = transactionId;
+                            return [2 /*return*/, loadedTransaction];
                         }
                         else {
-                            throw new Error("Transaction not found");
+                            // TODO: throw new Error('Transaction not found')
+                            return [2 /*return*/, null];
                         }
                         return [2 /*return*/];
                 }
@@ -117,9 +119,11 @@ var Transaction = (function () {
     Transaction.prototype.removeDbTransaction = function (transactionId) {
         if (transactionId === void 0) { transactionId = null; }
         return __awaiter(this, void 0, void 0, function () {
+            var error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        _a.trys.push([0, 5, , 6]);
                         if (!(transactionId === null)) return [3 /*break*/, 2];
                         return [4 /*yield*/, mongooseTransactions_collection_1.default.remove({}).exec()];
                     case 1:
@@ -129,7 +133,11 @@ var Transaction = (function () {
                     case 3:
                         _a.sent();
                         _a.label = 4;
-                    case 4: return [2 /*return*/];
+                    case 4: return [3 /*break*/, 6];
+                    case 5:
+                        error_1 = _a.sent();
+                        throw new Error('Fail remove transaction[s] in removeDbTransaction');
+                    case 6: return [2 /*return*/];
                 }
             });
         });
@@ -314,19 +322,37 @@ var Transaction = (function () {
                             });
                             break;
                     }
-                    return [2 /*return*/, operation.then(function (query) {
-                            _this.rollbackIndex = index;
-                            _this.updateOperationStatus("Success" /* success */, index);
-                            if (index === _this.operations.length - 1) {
-                                _this.updateDbTransaction("Success" /* success */);
-                            }
-                            final.push(query);
-                            return final;
-                        }).catch(function (err) {
-                            _this.updateOperationStatus("Error" /* error */, index);
-                            _this.updateDbTransaction("Error" /* error */);
-                            throw err;
-                        })];
+                    return [2 /*return*/, operation.then(function (query) { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        this.rollbackIndex = index;
+                                        if (!this.useDb) return [3 /*break*/, 2];
+                                        this.updateOperationStatus("Success" /* success */, index);
+                                        if (!(index === this.operations.length - 1)) return [3 /*break*/, 2];
+                                        return [4 /*yield*/, this.updateDbTransaction("Success" /* success */)];
+                                    case 1:
+                                        _a.sent();
+                                        _a.label = 2;
+                                    case 2:
+                                        final.push(query);
+                                        return [2 /*return*/, final];
+                                }
+                            });
+                        }); }).catch(function (err) { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        if (!this.useDb) return [3 /*break*/, 2];
+                                        this.updateOperationStatus("Error" /* error */, index);
+                                        return [4 /*yield*/, this.updateDbTransaction("Error" /* error */)];
+                                    case 1:
+                                        _a.sent();
+                                        _a.label = 2;
+                                    case 2: throw err;
+                                }
+                            });
+                        }); })];
                 });
             }); });
         }, Promise.resolve());
@@ -447,12 +473,7 @@ var Transaction = (function () {
         };
     };
     Transaction.prototype.updateOperationStatus = function (status, index) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                this.operations[index].status = status;
-                return [2 /*return*/];
-            });
-        });
+        this.operations[index].status = status;
     };
     Transaction.prototype.updateDbTransaction = function (status) {
         return __awaiter(this, void 0, void 0, function () {
