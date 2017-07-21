@@ -75,13 +75,13 @@ describe('Transaction using DB ', () => {
 
         const transId = await transaction.createTransaction()
 
-        console.log('transId =>', transId)
+        const trans = await transaction.loadDbTransaction(transId)
 
-        await transaction.loadDbTransaction(transId)
+        expect(trans.status).toBe('pending')
 
-        const removed = await transaction.removeDbTransaction(transId)
+        await transaction.removeDbTransaction(transId)
 
-        // TODO: find transaction and check it is null
+        expect(await transaction.loadDbTransaction(transId)).toBeNull()
 
     })
 
