@@ -86,6 +86,7 @@ export default class Transaction {
             this.transactionId = transactionId
             return loadedTransaction
         } else {
+            // TODO: throw new Error('Transaction not found')
             return null
         }
 
@@ -282,18 +283,22 @@ export default class Transaction {
                         break;
                 }
 
-                return operation.then((query) => {
+                return operation.then(async (query) => {
                     this.rollbackIndex = index
-                    this.updateOperationStatus(Status.success, index)
-                    if (index === this.operations.length - 1) {
-                        this.updateDbTransaction(Status.success)
+                    if (this.useDb) {
+                        this.updateOperationStatus(Status.success, index)
+                        if (index === this.operations.length - 1) {
+                            await this.updateDbTransaction(Status.success)
+                        }
                     }
                     final.push(query)
                     return final
 
-                }).catch((err) => {
-                    this.updateOperationStatus(Status.error, index)
-                    this.updateDbTransaction(Status.error)
+                }).catch(async (err) => {
+                    if (this.useDb) {
+                        this.updateOperationStatus(Status.error, index)
+                        await this.updateDbTransaction(Status.error)
+                    }
                     throw err
                 })
 
