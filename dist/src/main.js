@@ -36,47 +36,205 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose = require("mongoose");
+var mongooseTransactions_collection_1 = require("./mongooseTransactions.collection");
 /** Class representing a transaction. */
 var Transaction = (function () {
-    function Transaction() {
-        /** Index used for retrieve the executed transaction in the run */
-        this.rollbackIndex = 0;
-        /** The actions to execute on mongoose collections when transaction run is called */
-        this.transactions = [];
-    }
     /**
      * Create a transaction.
-     * @param parameters - The parameters
+     * @param useDb - The boolean parameter allow to use transaction collection on db (default false)
+     * @param transactionId - The id of the transaction to load, load the transaction
+     *                        from db if you set useDb true (default "")
      */
-    // constructor() {}
+    function Transaction(useDb, transactionId) {
+        if (useDb === void 0) { useDb = false; }
+        if (transactionId === void 0) { transactionId = ""; }
+        /** Index used for retrieve the executed transaction in the run */
+        this.rollbackIndex = 0;
+        /** Boolean value for enable or disable saving transaction on db */
+        this.useDb = false;
+        /** The id of the current transaction document on database */
+        this.transactionId = "";
+        /** The actions to execute on mongoose collections when transaction run is called */
+        this.operations = [];
+        this.useDb = useDb;
+        // if (this.useDb) {
+        //     if (transactionId !== "") {
+        //         this.loadDbTransaction(transactionId)
+        //     } else {
+        //         this.transactionId = this.createTransaction()
+        //     }
+        // }
+    }
+    Transaction.prototype.createTransaction = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var transaction;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!this.useDb) return [3 /*break*/, 2];
+                        return [4 /*yield*/, mongooseTransactions_collection_1.default.create({
+                                operations: this.operations
+                            })];
+                    case 1:
+                        transaction = _a.sent();
+                        this.transactionId = transaction._id;
+                        return [2 /*return*/, this.transactionId];
+                    case 2: throw new Error("You must set useDB true in the constructor");
+                }
+            });
+        });
+    };
     /**
-     * Clean the transactions object to begin a new transaction on the same instance.
+     * Load transaction from transaction collection on db.
+     * @param transactionId - The id of the transaction to load.
+     * @trows Error - Throws error if the transaction is not found
+     */
+    Transaction.prototype.loadDbTransaction = function (transactionId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var loadedTransaction;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, mongooseTransactions_collection_1.default.findById(transactionId).lean().exec()];
+                    case 1:
+                        loadedTransaction = _a.sent();
+                        if (loadedTransaction && loadedTransaction.operations) {
+                            this.operations = loadedTransaction.operations;
+                            this.transactionId = transactionId;
+                        }
+                        else {
+                            throw new Error("Transaction not found");
+                        }
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Remove transaction from transaction collection on db,
+     * if the transactionId param is null, remove all documents in the collection.
+     * @param transactionId - Optional. The id of the transaction to remove (default null).
+     */
+    Transaction.prototype.removeDbTransaction = function (transactionId) {
+        if (transactionId === void 0) { transactionId = null; }
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!(transactionId === null)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, mongooseTransactions_collection_1.default.remove({}).exec()];
+                    case 1:
+                        _a.sent();
+                        return [3 /*break*/, 4];
+                    case 2: return [4 /*yield*/, mongooseTransactions_collection_1.default.findByIdAndRemove(transactionId).exec()];
+                    case 3:
+                        _a.sent();
+                        _a.label = 4;
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Remove transaction from transaction collection on db,
+     * if the transactionId param is null, remove all documents in the collection.
+     * @param transactionId - Optional. The id of the transaction to remove (default null).
+     */
+    Transaction.prototype.getTransactionId = function () {
+        // TODO:this!
+        return this.transactionId;
+    };
+    /**
+     * Remove transaction from transaction collection on db,
+     * if the transactionId param is null, remove all documents in the collection.
+     * @param index - Optional. If the index is passed return the elemet at index position
+     *                          else return all elements (default null).
+     * @param transactionId - Optional. If the transaction id is passed return the elements of the transaction id
+     *                                  else return the elements of current transaction (default null).
+     */
+    Transaction.prototype.getOperations = function (index, transactionId) {
+        if (index === void 0) { index = null; }
+        if (transactionId === void 0) { transactionId = null; }
+        return __awaiter(this, void 0, void 0, function () {
+            var transactions;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!(transactionId === null || transactionId === false)) return [3 /*break*/, 1];
+                        if (index === null || index === false) {
+                            return [2 /*return*/, this.operations];
+                        }
+                        else {
+                            if (index < this.operations.length) {
+                                return [2 /*return*/, this.operations[index]];
+                            }
+                            else {
+                                throw new Error('Index exceed operations length');
+                            }
+                        }
+                        return [3 /*break*/, 4];
+                    case 1:
+                        if (!(index === null || index === false)) return [3 /*break*/, 2];
+                        return [2 /*return*/, mongooseTransactions_collection_1.default.findById(transactionId).lean().exec()];
+                    case 2: return [4 /*yield*/, mongooseTransactions_collection_1.default.findById(transactionId).lean().exec()];
+                    case 3:
+                        transactions = _a.sent();
+                        if (index < transactions.operations.length) {
+                            return [2 /*return*/, transactions.operations[index]];
+                        }
+                        else {
+                            throw new Error('Index exceed operations length');
+                        }
+                        _a.label = 4;
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Clean the operations object to begin a new transaction on the same instance.
      */
     Transaction.prototype.clean = function () {
-        this.transactions = [];
+        return __awaiter(this, void 0, void 0, function () {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        this.operations = [];
+                        this.rollbackIndex = 0;
+                        this.transactionId = "";
+                        if (!this.useDb) return [3 /*break*/, 2];
+                        _a = this;
+                        return [4 /*yield*/, this.createTransaction()];
+                    case 1:
+                        _a.transactionId = _b.sent();
+                        _b.label = 2;
+                    case 2: return [2 /*return*/];
+                }
+            });
+        });
     };
     /**
      * Create the insert transaction and rollback states.
      * @param modelName - The string containing the mongoose model name.
-     * @param data - The object or array containing data to insert into mongoose model.
-     * @returns id - The id of the bject to insert.
+     * @param data - The object containing data to insert into mongoose model.
+     * @returns id - The id of the object to insert.
      */
     Transaction.prototype.insert = function (modelName, data) {
         var model = mongoose.model(modelName);
         if (!data._id) {
-            var id = new mongoose.Types.ObjectId();
-            data._id = id;
+            data._id = new mongoose.Types.ObjectId();
         }
         var transactionObj = {
             data: data,
-            findId: "",
+            findId: data._id,
             model: model,
             modelName: modelName,
             oldModel: null,
             rollbackType: "remove",
+            status: "Pending" /* pending */,
             type: "insert",
         };
-        this.transactions.push(transactionObj);
+        this.operations.push(transactionObj);
         return data._id;
     };
     /**
@@ -84,17 +242,6 @@ var Transaction = (function () {
      * @param modelName - The string containing the mongoose model name.
      * @param findId - The id of the object to update.
      * @param dataObj - The object containing data to update into mongoose model.
-     * @param options - The object containing the options for update query:
-     *                     safe (boolean) safe mode (defaults to value set in schema (true))
-     *                     upsert (boolean) whether to create the doc if it doesn't match (false)
-     *                     multi (boolean) whether multiple documents should be updated (false)
-     *                     runValidators: if true, runs update validators on this command.
-     *                          Update validators validate the update operation against the model's schema.
-     *                     setDefaultsOnInsert: if this and upsert are true, mongoose will apply the defaults
-     *                          specified in the model's schema if a new document is created. This option only works
-     *                          on MongoDB >= 2.4 because it relies on MongoDB's $setOnInsert operator.
-     *                     strict (boolean) overrides the strict option for this update
-     *                     overwrite (boolean) disables update-only mode, allowing you to overwrite the doc (false)
      */
     Transaction.prototype.update = function (modelName, findId, data, options) {
         if (options === void 0) { options = {}; }
@@ -106,9 +253,10 @@ var Transaction = (function () {
             modelName: modelName,
             oldModel: null,
             rollbackType: "update",
+            status: "Pending" /* pending */,
             type: "update",
         };
-        this.transactions.push(transactionObj);
+        this.operations.push(transactionObj);
     };
     /**
      * Create the remove transaction and rollback states.
@@ -124,17 +272,24 @@ var Transaction = (function () {
             modelName: modelName,
             oldModel: null,
             rollbackType: "insert",
+            status: "Pending" /* pending */,
             type: "remove",
         };
-        this.transactions.push(transactionObj);
+        this.operations.push(transactionObj);
     };
     /**
-     * Run the transaction and check errors.
+     * Run the operations and check errors.
+     * @returns Array of objects - The objects returned by operations
+     *          Error - The error object containing:
+     *                  data - the input data of operation
+     *                  error - the error returned by the operation
+     *                  executedTransactions - the number of executed operations
+     *                  remainingTransactions - the number of the not executed operations
      */
     Transaction.prototype.run = function () {
         var _this = this;
         var final = [];
-        return this.transactions.reduce(function (promise, transaction, index) {
+        return this.operations.reduce(function (promise, transaction, index) {
             return promise.then(function (result) { return __awaiter(_this, void 0, void 0, function () {
                 var _this = this;
                 var operation;
@@ -145,30 +300,56 @@ var Transaction = (function () {
                             operation = this.insertTransaction(transaction.model, transaction.data);
                             break;
                         case "update":
-                            transaction.oldModel = this.findByIdTransaction(transaction.model, transaction.findId);
-                            operation = this.updateTransaction(transaction.model, transaction.findId, transaction.data);
+                            operation = this.findByIdTransaction(transaction.model, transaction.findId)
+                                .then(function (findRes) {
+                                transaction.oldModel = findRes;
+                                return _this.updateTransaction(transaction.model, transaction.findId, transaction.data);
+                            });
                             break;
                         case "remove":
-                            transaction.oldModel = this.findByIdTransaction(transaction.model, transaction.findId);
-                            operation = this.removeTransaction(transaction.model, transaction.findId);
+                            operation = this.findByIdTransaction(transaction.model, transaction.findId)
+                                .then(function (findRes) {
+                                transaction.oldModel = findRes;
+                                return _this.removeTransaction(transaction.model, transaction.findId);
+                            });
                             break;
                     }
                     return [2 /*return*/, operation.then(function (query) {
                             _this.rollbackIndex = index;
+                            _this.updateOperationStatus("Success" /* success */, index);
+                            if (index === _this.operations.length - 1) {
+                                _this.updateDbTransaction("Success" /* success */);
+                            }
                             final.push(query);
                             return final;
+                        }).catch(function (err) {
+                            _this.updateOperationStatus("Error" /* error */, index);
+                            _this.updateDbTransaction("Error" /* error */);
+                            throw err;
                         })];
                 });
             }); });
         }, Promise.resolve());
     };
     /**
-     * Rollback the executed transactions if any error occurred.
+     * Rollback the executed operations if any error occurred.
+     * @param   stepNumber - (optional) the number of the operation to rollback - default to length of
+     *                            operation successfully runned
+     * @returns Array of objects - The objects returned by rollback operations
+     *          Error - The error object containing:
+     *                  data - the input data of operation
+     *                  error - the error returned by the operation
+     *                  executedTransactions - the number of rollbacked operations
+     *                  remainingTransactions - the number of the not rollbacked operations
      */
-    Transaction.prototype.rollback = function (err) {
+    Transaction.prototype.rollback = function (howmany) {
         var _this = this;
-        var transactionsToRollback = this.transactions.slice(0, this.rollbackIndex);
+        if (howmany === void 0) { howmany = this.rollbackIndex + 1; }
+        var transactionsToRollback = this.operations.slice(0, this.rollbackIndex + 1);
         transactionsToRollback.reverse();
+        if (howmany !== this.rollbackIndex + 1) {
+            transactionsToRollback = transactionsToRollback.slice(0, howmany);
+        }
         var final = [];
         return transactionsToRollback.reduce(function (promise, transaction, index) {
             return promise.then(function (result) {
@@ -186,8 +367,16 @@ var Transaction = (function () {
                 }
                 return operation.then(function (query) {
                     _this.rollbackIndex = index;
+                    _this.updateOperationStatus("Rollback" /* rollback */, index);
+                    if (index === _this.operations.length - 1) {
+                        _this.updateDbTransaction("Rollback" /* rollback */);
+                    }
                     final.push(query);
                     return final;
+                }).catch(function (err) {
+                    _this.updateOperationStatus("ErrorRollback" /* errorRollback */, index);
+                    _this.updateDbTransaction("ErrorRollback" /* errorRollback */);
+                    throw err;
                 });
             });
         }, Promise.resolve());
@@ -196,7 +385,7 @@ var Transaction = (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, model.findById(findId).exec()];
+                    case 0: return [4 /*yield*/, model.findById(findId).lean().exec()];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -215,35 +404,35 @@ var Transaction = (function () {
             });
         });
     };
-    Transaction.prototype.updateTransaction = function (model, find, data) {
+    Transaction.prototype.updateTransaction = function (model, id, data) {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            model.findByIdAndUpdate(find, data, { new: false }, function (err, result) {
+            model.findByIdAndUpdate(id, data, { new: false }, function (err, result) {
                 if (err) {
-                    return reject(_this.transactionError(err, { find: find, data: data }));
+                    return reject(_this.transactionError(err, { id: id, data: data }));
                 }
                 else {
                     if (!result) {
-                        return reject(_this.transactionError(new Error('Entity not found'), { find: find, data: data }));
+                        return reject(_this.transactionError(new Error('Entity not found'), { id: id, data: data }));
                     }
                     return resolve(result);
                 }
             });
         });
     };
-    Transaction.prototype.removeTransaction = function (model, find) {
+    Transaction.prototype.removeTransaction = function (model, id) {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            model.findByIdAndRemove(find, function (err, data) {
+            model.findByIdAndRemove(id, function (err, data) {
                 if (err) {
-                    return reject(_this.transactionError(err, find));
+                    return reject(_this.transactionError(err, id));
                 }
                 else {
                     if (data == null) {
-                        return reject(_this.transactionError(new Error('Entity not found'), find));
+                        return reject(_this.transactionError(new Error('Entity not found'), id));
                     }
                     else {
-                        return resolve(data.result);
+                        return resolve(data);
                     }
                 }
             });
@@ -254,8 +443,29 @@ var Transaction = (function () {
             data: data,
             error: error,
             executedTransactions: this.rollbackIndex + 1,
-            remainingTransactions: this.transactions.length - (this.rollbackIndex + 1),
+            remainingTransactions: this.operations.length - (this.rollbackIndex + 1),
         };
+    };
+    Transaction.prototype.updateOperationStatus = function (status, index) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                this.operations[index].status = status;
+                return [2 /*return*/];
+            });
+        });
+    };
+    Transaction.prototype.updateDbTransaction = function (status) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!(this.useDb && this.transactionId !== "")) return [3 /*break*/, 2];
+                        return [4 /*yield*/, mongooseTransactions_collection_1.default.findByIdAndUpdate(this.transactionId, { operations: this.operations, status: status }, { new: true })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                    case 2: return [2 /*return*/];
+                }
+            });
+        });
     };
     return Transaction;
 }());
