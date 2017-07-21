@@ -84,6 +84,7 @@ export default class Transaction {
         if (loadedTransaction && loadedTransaction.operations) {
             this.operations = loadedTransaction.operations
             this.transactionId = transactionId
+            return loadedTransaction
         } else {
             throw new Error("Transaction not found")
         }
