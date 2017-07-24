@@ -3,16 +3,18 @@ import Transaction from "../src/main";
 
 import * as mongoose from 'mongoose';
 
-// mongoose.Promise = global.Promise
+mongoose.Promise = global.Promise
 
 describe('Transaction using DB ', () => {
 
     const options: any = {
-        useMongoClient: true
+        reconnectInterval: 10,
+        reconnectTries: 10,
+        useMongoClient: true,
     }
 
     mongoose.connection
-        // .once('open', () => { })
+        .once('open', () => { console.log('Mongo connected!'); })
         .on('error', (err) => console.warn('Warning', err))
 
     let transaction: any
@@ -48,7 +50,7 @@ describe('Transaction using DB ', () => {
      * create new Transaction using database storage
      */
     beforeEach(async () => {
-        await dropCollections()
+        // await dropCollections()
         const useDB = true
         transaction = new Transaction(useDB)
     })
@@ -58,15 +60,16 @@ describe('Transaction using DB ', () => {
      * close database connection
      */
     afterAll(async () => {
-        await dropCollections()
+        // await dropCollections()
         await mongoose.connection.close()
+        console.log('connection closed');
     })
 
     /**
      * remove transactions collection from database
      */
     afterEach(async () => {
-        await transaction.removeDbTransaction()
+        // await transaction.removeDbTransaction()
     })
 
     test('should create new transaction and remove it', async () => {
@@ -126,10 +129,67 @@ describe('Transaction using DB ', () => {
             expect(trans.operations).toBeInstanceOf(Array)
             expect(trans.operations.length).toBe(2)
             expect(trans.operations[0].status).toBe('Success')
-            expect(trans.operations[0].status).toBe('Success')
+            expect(trans.operations[1].status).toBe('Success')
 
         } catch (error) {
             console.error('run err =>', error)
+            expect(error).toBeNull()
+        }
+
+    })
+
+    test('should create transaction, insert, update, remove(fail) and run', async () => {
+
+        const person: string = 'Person'
+
+        const transId = await transaction.createTransaction().catch(console.error)
+
+        const tonyObject: any = {
+            age: 28,
+            name: 'Tony'
+        }
+
+        const nicolaObject: any = {
+            age: 32,
+            name: 'Nicola',
+        }
+
+        const id = transaction.insert(person, tonyObject)
+
+        transaction.update(person, id, nicolaObject, { new: true })
+
+        const fakeId = new mongoose.Types.ObjectId()
+
+        transaction.remove(person, fakeId)
+
+        try {
+            const final = await transaction.run()
+        } catch (err) {
+            console.error('err => ', err);
+        }
+
+        try {
+            const trans = await transaction.loadDbTransaction(transId)
+            console.log('trans =>', trans);
+            expect(trans.status).toBe('Error')
+            expect(trans.operations).toBeInstanceOf(Array)
+            expect(trans.operations.length).toBe(3)
+            expect(trans.operations[0].status).toBe('Success')
+            expect(trans.operations[1].status).toBe('Success')
+            expect(trans.operations[2].status).toBe('Error')
+
+        } catch (err) {
+            console.error('err =>', err);
+            expect(err).toBeNull()
+
+        }
+
+        try {
+            const rolled = await transaction.rollback()
+            console.log('rolled =>', rolled);
+        } catch (err) {
+            console.error('roll =>', err);
+            // expect(err).toBeNull()
         }
 
     })

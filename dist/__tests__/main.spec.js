@@ -41,7 +41,7 @@ var mongoose = require("mongoose");
 var options = {
     useMongoClient: true
 };
-// mongoose.Promise = global.Promise
+mongoose.Promise = global.Promise;
 mongoose.connection
     .on('error', function (err) { return console.warn('Warning', err); });
 var personSchema = new mongoose.Schema({
