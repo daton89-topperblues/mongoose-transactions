@@ -155,8 +155,8 @@ describe('Transaction using DB ', function () {
             }
         });
     }); });
-    test('should insert, update and run storing it in database', function () { return __awaiter(_this, void 0, void 0, function () {
-        var person, transId, tonyObject, nicolaObject, error_1;
+    test('should create transaction, insert, update and run', function () { return __awaiter(_this, void 0, void 0, function () {
+        var person, transId, tonyObject, nicolaObject, id, final, trans, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -172,19 +172,34 @@ describe('Transaction using DB ', function () {
                         age: 32,
                         name: 'Nicola',
                     };
-                    transaction.insert(person, tonyObject);
-                    transaction.update(person, nicolaObject);
+                    id = transaction.insert(person, tonyObject);
+                    transaction.update(person, id, nicolaObject, { new: true });
                     _a.label = 2;
                 case 2:
-                    _a.trys.push([2, 4, , 5]);
+                    _a.trys.push([2, 5, , 6]);
                     return [4 /*yield*/, transaction.run()];
                 case 3:
-                    _a.sent();
-                    return [3 /*break*/, 5];
+                    final = _a.sent();
+                    expect(final).toBeInstanceOf(Array);
+                    expect(final.length).toBe(2);
+                    expect(final[0].name).toBe(tonyObject.name);
+                    expect(final[0].age).toBe(tonyObject.age);
+                    expect(final[1].name).toBe(tonyObject.name);
+                    expect(final[1].age).toBe(tonyObject.age);
+                    return [4 /*yield*/, transaction.loadDbTransaction(transId)];
                 case 4:
+                    trans = _a.sent();
+                    console.log('trans =>', trans);
+                    expect(trans.status).toBe('Success');
+                    expect(trans.operations).toBeInstanceOf(Array);
+                    expect(trans.operations.length).toBe(2);
+                    expect(trans.operations[0].status).toBe('Success');
+                    expect(trans.operations[0].status).toBe('Success');
+                    return [3 /*break*/, 6];
+                case 5:
                     error_1 = _a.sent();
-                    return [3 /*break*/, 5];
-                case 5: return [2 /*return*/];
+                    return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
             }
         });
     }); });

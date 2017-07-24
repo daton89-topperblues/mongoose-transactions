@@ -85,7 +85,7 @@ describe('Transaction using DB ', () => {
 
     })
 
-    test('should insert, update and run storing it in database', async () => {
+    test('should create transaction, insert, update and run', async () => {
 
         const person: string = 'Person'
 
@@ -101,12 +101,33 @@ describe('Transaction using DB ', () => {
             name: 'Nicola',
         }
 
-        transaction.insert(person, tonyObject)
+        const id = transaction.insert(person, tonyObject)
 
-        transaction.update(person, nicolaObject)
+        transaction.update(person, id, nicolaObject, { new: true })
+
+        let final: any
 
         try {
-            await transaction.run()
+
+            final = await transaction.run()
+
+            expect(final).toBeInstanceOf(Array)
+            expect(final.length).toBe(2)
+            expect(final[0].name).toBe(tonyObject.name)
+            expect(final[0].age).toBe(tonyObject.age)
+            expect(final[1].name).toBe(tonyObject.name)
+            expect(final[1].age).toBe(tonyObject.age)
+
+            const trans = await transaction.loadDbTransaction(transId)
+
+            console.log('trans =>', trans);
+
+            expect(trans.status).toBe('Success')
+            expect(trans.operations).toBeInstanceOf(Array)
+            expect(trans.operations.length).toBe(2)
+            expect(trans.operations[0].status).toBe('Success')
+            expect(trans.operations[0].status).toBe('Success')
+
         } catch (error) {
             // console.error('run err =>', error)
         }
