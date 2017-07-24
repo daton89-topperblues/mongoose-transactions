@@ -38,6 +38,8 @@ export default class Transaction {
         findId: any,
         /** The data */
         data: any,
+        /** options configuration query */
+        options: any,
         /** The current status of the operation */
         status: Status
     }> = [];
@@ -175,7 +177,7 @@ export default class Transaction {
      * @param data - The object containing data to insert into mongoose model.
      * @returns id - The id of the object to insert.
      */
-    public insert(modelName, data) {
+    public insert(modelName, data, options = {}) {
         const model = mongoose.model(modelName);
 
         if (!data._id) {
@@ -188,6 +190,7 @@ export default class Transaction {
             model,
             modelName,
             oldModel: null,
+            options,
             rollbackType: "remove",
             status: Status.pending,
             type: "insert",
@@ -213,6 +216,7 @@ export default class Transaction {
             model,
             modelName,
             oldModel: null,
+            options,
             rollbackType: "update",
             status: Status.pending,
             type: "update",
@@ -227,7 +231,7 @@ export default class Transaction {
      * @param modelName - The string containing the mongoose model name.
      * @param findObj - The object containing data to find mongoose collection.
      */
-    public remove(modelName, findId) {
+    public remove(modelName, findId, options = {}) {
         const model = mongoose.model(modelName);
         const transactionObj = {
             data: null,
@@ -235,6 +239,7 @@ export default class Transaction {
             model,
             modelName,
             oldModel: null,
+            options,
             rollbackType: "insert",
             status: Status.pending,
             type: "remove",
@@ -271,7 +276,12 @@ export default class Transaction {
                         operation = this.findByIdTransaction(transaction.model, transaction.findId)
                             .then((findRes) => {
                                 transaction.oldModel = findRes;
-                                return this.updateTransaction(transaction.model, transaction.findId, transaction.data)
+                                return this.updateTransaction(
+                                    transaction.model,
+                                    transaction.findId,
+                                    transaction.data,
+                                    transaction.options
+                                )
                             })
                         break;
                     case "remove":
@@ -386,9 +396,10 @@ export default class Transaction {
         });
     }
 
-    private updateTransaction(model, id, data) {
+    private updateTransaction(model, id, data, options = { new: false }) {
+
         return new Promise((resolve, reject) => {
-            model.findByIdAndUpdate(id, data, { new: false }, (err, result) => {
+            model.findByIdAndUpdate(id, data, options, (err, result) => {
 
                 if (err) {
                     return reject(this.transactionError(err, { id, data }))
