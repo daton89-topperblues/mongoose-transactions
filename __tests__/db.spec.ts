@@ -107,6 +107,8 @@ describe('Transaction using DB ', () => {
 
         let final: any
 
+        let trans: any
+
         try {
 
             final = await transaction.run()
@@ -115,12 +117,10 @@ describe('Transaction using DB ', () => {
             expect(final.length).toBe(2)
             expect(final[0].name).toBe(tonyObject.name)
             expect(final[0].age).toBe(tonyObject.age)
-            expect(final[1].name).toBe(tonyObject.name)
-            expect(final[1].age).toBe(tonyObject.age)
+            expect(final[1].name).toBe(nicolaObject.name)
+            expect(final[1].age).toBe(nicolaObject.age)
 
-            const trans = await transaction.loadDbTransaction(transId)
-
-            console.log('trans =>', trans);
+            trans = await transaction.loadDbTransaction(transId)
 
             expect(trans.status).toBe('Success')
             expect(trans.operations).toBeInstanceOf(Array)
@@ -129,7 +129,7 @@ describe('Transaction using DB ', () => {
             expect(trans.operations[0].status).toBe('Success')
 
         } catch (error) {
-            // console.error('run err =>', error)
+            console.error('run err =>', error)
         }
 
     })
