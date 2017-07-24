@@ -7,7 +7,7 @@ const options: any = {
     useMongoClient: true
 }
 
-// mongoose.Promise = global.Promise
+mongoose.Promise = global.Promise
 
 mongoose.connection
     // .once('open', () => { })
