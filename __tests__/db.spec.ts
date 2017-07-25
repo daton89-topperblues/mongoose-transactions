@@ -170,7 +170,7 @@ describe('Transaction using DB ', () => {
 
         try {
             const trans = await transaction.loadDbTransaction(transId)
-            console.log('trans =>', trans);
+            // console.log('trans =>', trans);
             expect(trans.status).toBe('Error')
             expect(trans.operations).toBeInstanceOf(Array)
             expect(trans.operations.length).toBe(3)
