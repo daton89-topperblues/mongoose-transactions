@@ -84,12 +84,15 @@ export default class Transaction {
 
         const loadedTransaction: any = await Model.findById(transactionId).lean().exec()
         if (loadedTransaction && loadedTransaction.operations) {
+            loadedTransaction.operations.forEach((operation) => {
+                operation.model = mongoose.model(operation.modelName);
+            });
             this.operations = loadedTransaction.operations
             this.transactionId = transactionId
             return loadedTransaction
         } else {
-            // TODO: throw new Error('Transaction not found')
-            return null
+            throw new Error('Transaction not found')
+            // return null
         }
 
     }
@@ -295,26 +298,26 @@ export default class Transaction {
 
                 return operation.then(async (query) => {
                     this.rollbackIndex = index
-                    if (this.useDb) {
-                        this.updateOperationStatus(Status.success, index)
-                        if (index === this.operations.length - 1) {
-                            await this.updateDbTransaction(Status.success)
-                        }
+                    this.updateOperationStatus(Status.success, index)
+
+                    if (index === this.operations.length - 1) {
+                        await this.updateDbTransaction(Status.success)
                     }
+
                     final.push(query)
                     return final
 
                 }).catch(async (err) => {
-                    if (this.useDb) {
-                        this.updateOperationStatus(Status.error, index)
-                        await this.updateDbTransaction(Status.error)
-                    }
+                    this.updateOperationStatus(Status.error, index)
+
+                    await this.updateDbTransaction(Status.error)
+
                     throw err
                 })
 
             })
 
-        }, Promise.resolve())
+        }, Promise.resolve([]))
 
     }
 
@@ -352,7 +355,8 @@ export default class Transaction {
                         operation = this.insertTransaction(transaction.model, transaction.oldModel)
                         break;
                     case "update":
-                        operation = this.updateTransaction(transaction.model, transaction.findId, transaction.oldModel)
+                        operation = this.updateTransaction(transaction.model,
+                            transaction.findId, transaction.oldModel)
                         break;
                     case "remove":
                         operation = this.removeTransaction(transaction.model, transaction.findId)
@@ -360,27 +364,27 @@ export default class Transaction {
                 }
 
                 return operation.then(async (query) => {
-                    this.rollbackIndex = index
-                    if (this.useDb) {
-                        this.updateOperationStatus(Status.rollback, index)
-                        if (index === this.operations.length - 1) {
-                            await this.updateDbTransaction(Status.rollback)
-                        }
+                    this.rollbackIndex--
+
+                    this.updateOperationStatus(Status.rollback, index)
+                    if (index === this.operations.length - 1) {
+                        await this.updateDbTransaction(Status.rollback)
                     }
+
                     final.push(query)
                     return final
 
                 }).catch(async (err) => {
-                    if (this.useDb) {
-                        this.updateOperationStatus(Status.errorRollback, index)
-                        await this.updateDbTransaction(Status.errorRollback)
-                    }
+
+                    this.updateOperationStatus(Status.errorRollback, index)
+                    await this.updateDbTransaction(Status.errorRollback)
+
                     throw err
                 })
 
             })
 
-        }, Promise.resolve())
+        }, Promise.resolve([]))
 
     }
 
