@@ -76,7 +76,7 @@ describe('Transaction using DB ', () => {
 
         const person: string = 'Person'
 
-        const transId = await transaction.createTransaction()
+        const transId = await transaction.getTransactionId()
 
         const trans = await transaction.loadDbTransaction(transId)
 
@@ -96,7 +96,7 @@ describe('Transaction using DB ', () => {
 
         const person: string = 'Person'
 
-        const transId = await transaction.createTransaction()
+        const transId = await transaction.getTransactionId()
 
         const tonyObject: any = {
             age: 28,
@@ -142,11 +142,11 @@ describe('Transaction using DB ', () => {
 
     })
 
-    test('should create transaction, insert, update, remove(fail) and run', async () => {
+    test('should create transaction, insert, update, remove(fail), run, rollback and rollback again', async () => {
 
         const person: string = 'Person'
 
-        const transId = await transaction.createTransaction().catch(console.error)
+        const transId = await transaction.getTransactionId()
 
         const tonyObject: any = {
             age: 28,
@@ -217,5 +217,92 @@ describe('Transaction using DB ', () => {
         }
 
     })
+
+    test('should create transaction, insert, update, remove(fail),'
+        + 'save operations, load operations in new Transaction instance, run and rollback', async () => {
+
+            const person: string = 'Person'
+
+            const tonyObject: any = {
+                age: 28,
+                name: 'Tony'
+            }
+
+            const nicolaObject: any = {
+                age: 32,
+                name: 'Nicola',
+            }
+
+            const id = transaction.insert(person, tonyObject)
+
+            transaction.update(person, id, nicolaObject, { new: true })
+
+            const fakeId = new mongoose.Types.ObjectId()
+
+            transaction.remove(person, fakeId)
+
+            const operations = transaction.getOperations();
+
+            const transId = await transaction.saveOperations();
+
+            const newTransaction = new Transaction(true);
+
+            await newTransaction.loadDbTransaction(transId);
+
+            const newOperations = newTransaction.getOperations();
+
+            expect(operations).toEqual(newOperations);
+
+            try {
+                const final = await newTransaction.run()
+            } catch (err) {
+                expect(err.error.message).toEqual('Entity not found')
+                expect(err.data).toEqual(fakeId)
+                expect(err.executedTransactions).toEqual(2)
+                expect(err.remainingTransactions).toEqual(1)
+            }
+
+            try {
+                const trans = await newTransaction.loadDbTransaction(transId)
+                console.log('trans =>', trans);
+                expect(trans.status).toBe('Error')
+                expect(trans.operations).toBeInstanceOf(Array)
+                expect(trans.operations.length).toBe(3)
+                expect(trans.operations[0].status).toBe('Success')
+                expect(trans.operations[1].status).toBe('Success')
+                expect(trans.operations[2].status).toBe('Error')
+
+            } catch (err) {
+                console.error('err =>', err);
+                expect(err).toBeNull()
+
+            }
+
+            try {
+                const rolled = await newTransaction.rollback()
+                console.log('rolled =>', rolled);
+                expect(rolled).toBeInstanceOf(Array)
+                expect(rolled.length).toBe(2)
+                expect(rolled[0].name).toBe('Nicola')
+                expect(rolled[0].age).toBe(32)
+                expect(rolled[1].name).toBe('Tony')
+                expect(rolled[1].age).toBe(28)
+            } catch (err) {
+                // console.error('roll =>', err);
+                expect(err).toBeNull()
+            }
+
+            try {
+                const rolled = await newTransaction.rollback()
+                console.log('rolled =>', rolled);
+                expect(rolled).toBeInstanceOf(Array)
+                expect(rolled.length).toBe(0)
+
+            } catch (err) {
+                // console.error('roll =>', err);
+                expect(err).toBeNull()
+            }
+
+        })
 
 })

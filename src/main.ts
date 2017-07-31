@@ -50,29 +50,9 @@ export default class Transaction {
      * @param transactionId - The id of the transaction to load, load the transaction
      *                        from db if you set useDb true (default "")
      */
-    constructor(useDb = false, transactionId = "") {
+    constructor(useDb = false) {
         this.useDb = useDb
-        // if (this.useDb) {
-        //     if (transactionId !== "") {
-        //         this.loadDbTransaction(transactionId)
-        //     } else {
-        //         this.transactionId = this.createTransaction()
-        //     }
-        // }
-    }
-
-    public async createTransaction() {
-        if (this.useDb) {
-
-            const transaction = await Model.create({
-                operations: this.operations
-            })
-
-            this.transactionId = transaction._id
-            return this.transactionId
-        } else {
-            throw new Error("You must set useDB true in the constructor")
-        }
+        this.transactionId = ""
     }
 
     /**
@@ -117,48 +97,48 @@ export default class Transaction {
     }
 
     /**
-     * Remove transaction from transaction collection on db,
-     * if the transactionId param is null, remove all documents in the collection.
-     * @param transactionId - Optional. The id of the transaction to remove (default null).
+     * If the instance is db true, return the actual or new transaction id.
+     * @throws Error - Throws error if the instance is not a db instance.
      */
-    public getTransactionId() {
-        // TODO:this!
+    public async getTransactionId() {
+        if (this.transactionId === "") {
+            await this.createTransaction();
+        }
         return this.transactionId;
 
     }
 
     /**
-     * Remove transaction from transaction collection on db,
-     * if the transactionId param is null, remove all documents in the collection.
-     * @param index - Optional. If the index is passed return the elemet at index position
-     *                          else return all elements (default null).
+     * Get transaction operations array from transaction object or collection on db.
      * @param transactionId - Optional. If the transaction id is passed return the elements of the transaction id
      *                                  else return the elements of current transaction (default null).
      */
-    public async getOperations(index = null, transactionId = null) {
+    public async getOperations(transactionId = null) {
 
-        if (transactionId === null || transactionId === false) {
-            if (index === null || index === false) {
-                return this.operations
-            } else {
-                if (index < this.operations.length) {
-                    return this.operations[index]
-                } else {
-                    throw new Error('Index exceed operations length')
-                }
-            }
+        if (transactionId) {
+            return await Model.findById(transactionId).lean().exec()
         } else {
-            if (index === null || index === false) {
-                return Model.findById(transactionId).lean().exec()
-            } else {
-                const transactions: any = await Model.findById(transactionId).lean().exec()
-                if (index < transactions.operations.length) {
-                    return transactions.operations[index]
-                } else {
-                    throw new Error('Index exceed operations length')
-                }
-            }
+            return this.operations
         }
+
+    }
+
+    /**
+     * Save transaction operations array on db.
+     * @throws Error - Throws error if the instance is not a db instance.
+     * @return transactionId - The transaction id on database
+     */
+    public async saveOperations() {
+
+        if (this.transactionId === "") {
+            await this.createTransaction()
+        }
+
+        await Model.findOneAndUpdate(this.transactionId, {
+            operations: this.operations
+        })
+
+        return this.transactionId
 
     }
 
@@ -261,7 +241,11 @@ export default class Transaction {
      *                  executedTransactions - the number of executed operations
      *                  remainingTransactions - the number of the not executed operations
      */
-    public run() {
+    public async run() {
+
+        if (this.useDb && this.transactionId === "") {
+            await this.createTransaction()
+        }
 
         const final = []
 
@@ -332,7 +316,11 @@ export default class Transaction {
      *                  executedTransactions - the number of rollbacked operations
      *                  remainingTransactions - the number of the not rollbacked operations
      */
-    public rollback(howmany = this.rollbackIndex + 1) {
+    public async rollback(howmany = this.rollbackIndex + 1) {
+
+        if (this.useDb && this.transactionId === "") {
+            await this.createTransaction()
+        }
 
         let transactionsToRollback: any = this.operations.slice(0, this.rollbackIndex + 1)
 
@@ -390,6 +378,20 @@ export default class Transaction {
 
     private async findByIdTransaction(model, findId) {
         return await model.findById(findId).lean().exec();
+    }
+
+    private async createTransaction() {
+        if (this.useDb) {
+
+            const transaction = await Model.create({
+                operations: this.operations
+            })
+
+            this.transactionId = transaction._id
+
+        } else {
+            throw new Error("You must set useDB true in the constructor")
+        }
     }
 
     private insertTransaction(model, data) {
