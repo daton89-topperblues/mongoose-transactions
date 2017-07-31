@@ -68,6 +68,7 @@ export default class Transaction {
                 operation.model = mongoose.model(operation.modelName);
             });
             this.operations = loadedTransaction.operations
+            this.rollbackIndex = loadedTransaction.rollbackIndex
             this.transactionId = transactionId
             return loadedTransaction
         } else {
@@ -135,7 +136,8 @@ export default class Transaction {
         }
 
         await Model.findOneAndUpdate(this.transactionId, {
-            operations: this.operations
+            operations: this.operations,
+            rollbackIndex: this.rollbackIndex
         })
 
         return this.transactionId
@@ -384,7 +386,8 @@ export default class Transaction {
         if (this.useDb) {
 
             const transaction = await Model.create({
-                operations: this.operations
+                operations: this.operations,
+                rollbackIndex: this.rollbackIndex
             })
 
             this.transactionId = transaction._id
@@ -462,7 +465,11 @@ export default class Transaction {
         if (this.useDb && this.transactionId !== "") {
             return await Model.findByIdAndUpdate(
                 this.transactionId,
-                { operations: this.operations, status },
+                {
+                    operations: this.operations,
+                    rollbackIndex: this.rollbackIndex,
+                    status
+                },
                 { new: true }
             )
         }

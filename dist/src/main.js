@@ -76,6 +76,7 @@ var Transaction = (function () {
                                 operation.model = mongoose.model(operation.modelName);
                             });
                             this.operations = loadedTransaction.operations;
+                            this.rollbackIndex = loadedTransaction.rollbackIndex;
                             this.transactionId = transactionId;
                             return [2 /*return*/, loadedTransaction];
                         }
@@ -173,7 +174,8 @@ var Transaction = (function () {
                         _a.sent();
                         _a.label = 2;
                     case 2: return [4 /*yield*/, mongooseTransactions_collection_1.default.findOneAndUpdate(this.transactionId, {
-                            operations: this.operations
+                            operations: this.operations,
+                            rollbackIndex: this.rollbackIndex
                         })];
                     case 3:
                         _a.sent();
@@ -454,7 +456,8 @@ var Transaction = (function () {
                     case 0:
                         if (!this.useDb) return [3 /*break*/, 2];
                         return [4 /*yield*/, mongooseTransactions_collection_1.default.create({
-                                operations: this.operations
+                                operations: this.operations,
+                                rollbackIndex: this.rollbackIndex
                             })];
                     case 1:
                         transaction = _a.sent();
@@ -531,7 +534,11 @@ var Transaction = (function () {
                 switch (_a.label) {
                     case 0:
                         if (!(this.useDb && this.transactionId !== "")) return [3 /*break*/, 2];
-                        return [4 /*yield*/, mongooseTransactions_collection_1.default.findByIdAndUpdate(this.transactionId, { operations: this.operations, status: status }, { new: true })];
+                        return [4 /*yield*/, mongooseTransactions_collection_1.default.findByIdAndUpdate(this.transactionId, {
+                                operations: this.operations,
+                                rollbackIndex: this.rollbackIndex,
+                                status: status
+                            }, { new: true })];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2: return [2 /*return*/];
                 }
