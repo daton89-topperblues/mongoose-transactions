@@ -80,11 +80,15 @@ describe('Transaction using DB ', () => {
 
         const trans = await transaction.loadDbTransaction(transId)
 
+        console.log("Transaction => ", trans)
+
         expect(trans.status).toBe('pending')
 
         await transaction.removeDbTransaction(transId)
 
-        expect(await transaction.loadDbTransaction(transId)).toBeNull()
+        expect(transaction.loadDbTransaction(transId))
+            .rejects
+            .toEqual(new Error('Transaction not found'));
 
     })
 
@@ -132,7 +136,7 @@ describe('Transaction using DB ', () => {
             expect(trans.operations[1].status).toBe('Success')
 
         } catch (error) {
-            console.error('run err =>', error)
+            // console.error('run err =>', error)
             expect(error).toBeNull()
         }
 
@@ -165,12 +169,15 @@ describe('Transaction using DB ', () => {
         try {
             const final = await transaction.run()
         } catch (err) {
-            console.error('err => ', err);
+            expect(err.error.message).toEqual('Entity not found')
+            expect(err.data).toEqual(fakeId)
+            expect(err.executedTransactions).toEqual(2)
+            expect(err.remainingTransactions).toEqual(1)
         }
 
         try {
             const trans = await transaction.loadDbTransaction(transId)
-            // console.log('trans =>', trans);
+            console.log('trans =>', trans);
             expect(trans.status).toBe('Error')
             expect(trans.operations).toBeInstanceOf(Array)
             expect(trans.operations.length).toBe(3)
@@ -179,7 +186,7 @@ describe('Transaction using DB ', () => {
             expect(trans.operations[2].status).toBe('Error')
 
         } catch (err) {
-            console.error('err =>', err);
+            // console.error('err =>', err);
             expect(err).toBeNull()
 
         }
@@ -187,9 +194,26 @@ describe('Transaction using DB ', () => {
         try {
             const rolled = await transaction.rollback()
             console.log('rolled =>', rolled);
+            expect(rolled).toBeInstanceOf(Array)
+            expect(rolled.length).toBe(2)
+            expect(rolled[0].name).toBe('Nicola')
+            expect(rolled[0].age).toBe(32)
+            expect(rolled[1].name).toBe('Tony')
+            expect(rolled[1].age).toBe(28)
         } catch (err) {
-            console.error('roll =>', err);
-            // expect(err).toBeNull()
+            // console.error('roll =>', err);
+            expect(err).toBeNull()
+        }
+
+        try {
+            const rolled = await transaction.rollback()
+            console.log('rolled =>', rolled);
+            expect(rolled).toBeInstanceOf(Array)
+            expect(rolled.length).toBe(0)
+
+        } catch (err) {
+            // console.error('roll =>', err);
+            expect(err).toBeNull()
         }
 
     })
