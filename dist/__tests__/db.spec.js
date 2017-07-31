@@ -94,9 +94,14 @@ describe('Transaction using DB ', function () {
     beforeEach(function () { return __awaiter(_this, void 0, void 0, function () {
         var useDB;
         return __generator(this, function (_a) {
-            useDB = true;
-            transaction = new main_1.default(useDB);
-            return [2 /*return*/];
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, dropCollections()];
+                case 1:
+                    _a.sent();
+                    useDB = true;
+                    transaction = new main_1.default(useDB);
+                    return [2 /*return*/];
+            }
         });
     }); });
     /**
@@ -106,11 +111,11 @@ describe('Transaction using DB ', function () {
     afterAll(function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: 
-                // await dropCollections()
-                return [4 /*yield*/, mongoose.connection.close()];
+                case 0: return [4 /*yield*/, dropCollections()];
                 case 1:
-                    // await dropCollections()
+                    _a.sent();
+                    return [4 /*yield*/, mongoose.connection.close()];
+                case 2:
                     _a.sent();
                     console.log('connection closed');
                     return [2 /*return*/];
@@ -122,7 +127,12 @@ describe('Transaction using DB ', function () {
      */
     afterEach(function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            return [2 /*return*/];
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, transaction.removeDbTransaction()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
         });
     }); });
     test('should create new transaction and remove it', function () { return __awaiter(_this, void 0, void 0, function () {
@@ -232,10 +242,12 @@ describe('Transaction using DB ', function () {
                     return [3 /*break*/, 5];
                 case 5:
                     _a.trys.push([5, 7, , 8]);
-                    return [4 /*yield*/, transaction.loadDbTransaction(transId)];
+                    return [4 /*yield*/, transaction.loadDbTransaction(transId)
+                        // console.log('trans =>', trans);
+                    ];
                 case 6:
                     trans = _a.sent();
-                    console.log('trans =>', trans);
+                    // console.log('trans =>', trans);
                     expect(trans.status).toBe('Error');
                     expect(trans.operations).toBeInstanceOf(Array);
                     expect(trans.operations.length).toBe(3);

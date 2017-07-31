@@ -50,7 +50,7 @@ describe('Transaction using DB ', () => {
      * create new Transaction using database storage
      */
     beforeEach(async () => {
-        // await dropCollections()
+        await dropCollections()
         const useDB = true
         transaction = new Transaction(useDB)
     })
@@ -60,7 +60,7 @@ describe('Transaction using DB ', () => {
      * close database connection
      */
     afterAll(async () => {
-        // await dropCollections()
+        await dropCollections()
         await mongoose.connection.close()
         console.log('connection closed');
     })
@@ -69,7 +69,7 @@ describe('Transaction using DB ', () => {
      * remove transactions collection from database
      */
     afterEach(async () => {
-        // await transaction.removeDbTransaction()
+        await transaction.removeDbTransaction()
     })
 
     test('should create new transaction and remove it', async () => {
@@ -170,7 +170,7 @@ describe('Transaction using DB ', () => {
 
         try {
             const trans = await transaction.loadDbTransaction(transId)
-            console.log('trans =>', trans);
+            // console.log('trans =>', trans);
             expect(trans.status).toBe('Error')
             expect(trans.operations).toBeInstanceOf(Array)
             expect(trans.operations.length).toBe(3)

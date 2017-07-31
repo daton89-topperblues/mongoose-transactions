@@ -359,18 +359,22 @@ export default class Transaction {
                         break;
                 }
 
-                return operation.then((query) => {
+                return operation.then(async (query) => {
                     this.rollbackIndex = index
-                    this.updateOperationStatus(Status.rollback, index)
-                    if (index === this.operations.length - 1) {
-                        this.updateDbTransaction(Status.rollback)
+                    if (this.useDb) {
+                        this.updateOperationStatus(Status.rollback, index)
+                        if (index === this.operations.length - 1) {
+                            await this.updateDbTransaction(Status.rollback)
+                        }
                     }
                     final.push(query)
                     return final
 
-                }).catch((err) => {
-                    this.updateOperationStatus(Status.errorRollback, index)
-                    this.updateDbTransaction(Status.errorRollback)
+                }).catch(async (err) => {
+                    if (this.useDb) {
+                        this.updateOperationStatus(Status.errorRollback, index)
+                        await this.updateDbTransaction(Status.errorRollback)
+                    }
                     throw err
                 })
 

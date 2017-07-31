@@ -396,19 +396,37 @@ var Transaction = (function () {
                         operation = _this.removeTransaction(transaction.model, transaction.findId);
                         break;
                 }
-                return operation.then(function (query) {
-                    _this.rollbackIndex = index;
-                    _this.updateOperationStatus("Rollback" /* rollback */, index);
-                    if (index === _this.operations.length - 1) {
-                        _this.updateDbTransaction("Rollback" /* rollback */);
-                    }
-                    final.push(query);
-                    return final;
-                }).catch(function (err) {
-                    _this.updateOperationStatus("ErrorRollback" /* errorRollback */, index);
-                    _this.updateDbTransaction("ErrorRollback" /* errorRollback */);
-                    throw err;
-                });
+                return operation.then(function (query) { return __awaiter(_this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                this.rollbackIndex = index;
+                                if (!this.useDb) return [3 /*break*/, 2];
+                                this.updateOperationStatus("Rollback" /* rollback */, index);
+                                if (!(index === this.operations.length - 1)) return [3 /*break*/, 2];
+                                return [4 /*yield*/, this.updateDbTransaction("Rollback" /* rollback */)];
+                            case 1:
+                                _a.sent();
+                                _a.label = 2;
+                            case 2:
+                                final.push(query);
+                                return [2 /*return*/, final];
+                        }
+                    });
+                }); }).catch(function (err) { return __awaiter(_this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                if (!this.useDb) return [3 /*break*/, 2];
+                                this.updateOperationStatus("ErrorRollback" /* errorRollback */, index);
+                                return [4 /*yield*/, this.updateDbTransaction("ErrorRollback" /* errorRollback */)];
+                            case 1:
+                                _a.sent();
+                                _a.label = 2;
+                            case 2: throw err;
+                        }
+                    });
+                }); });
             });
         }, Promise.resolve());
     };
