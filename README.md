@@ -44,8 +44,9 @@ const id = transaction.insert('modelName', object)
  * @param modelName - The string containing the mongoose model name.
  * @param findId - The id of the object to update.
  * @param dataObj - The object containing data to update into mongoose model.
+ * @param options - The update operation options object as { new: true }
  */
-transaction.update('modelName', id, object)
+transaction.update('modelName', id, object, options)
 /**
  * Create the remove transaction and rollback states.
  * @param modelName - The string containing the mongoose model name.
@@ -126,6 +127,109 @@ start()
 
 
 ```
+
+### Using database to save transactions
+
+Create new transaction instance with the ability to store and load transaction object to/form database.
+
+```js
+const useDB = true
+const transaction = new Transaction(useDB)
+```
+
+First of all you need to get the actual transaction id, you can use the id to load the transaction object from database. 
+
+```js
+/**
+* If the instance is db true, return the actual or new transaction id.
+* @throws Error - Throws error if the instance is not a db instance.
+*/
+const transId = await transaction.getTransactionId()
+```
+You can load a transaction object from database with the loadDbTransaction fuction.
+
+```js
+/**
+* Load transaction from transaction collection on db.
+* @param transactionId - The id of the transaction to load.
+* @trows Error - Throws error if the transaction is not found
+*/
+await transaction.loadDbTransaction(transId)
+```
+
+You can get the operations object by calling getOperations method.
+
+```js
+/**
+* Get transaction operations array from transaction object or collection on db.
+* @param transactionId - Optional. If the transaction id is passed return the elements of the transaction id
+*                                  else return the elements of current transaction (default null).
+*/
+const operations = transaction.getOperations();
+```
+
+You can save the operations object on database by calling saveOperations method.
+
+```js
+/**
+* Save transaction operations array on db.
+* @throws Error - Throws error if the instance is not a db instance.
+* @return transactionId - The transaction id on database
+*/
+const transId = await transaction.saveOperations();
+```
+Full example: 
+```js
+const Transaction = require('mongoose-transactions') 
+const useDB = true
+const transaction = new Transaction(useDB)
+
+const person: string = 'Person'
+
+const tonyObject: any = {
+    age: 28,
+    name: 'Tony'
+}
+
+const nicolaObject: any = {
+    age: 32,
+    name: 'Nicola',
+}
+
+async function start () {
+    
+    // create operation on transaction instance
+    const id = transaction.insert(person, tonyObject)
+    transaction.update(person, id, nicolaObject, { new: true })
+    
+    // get and save created operation, saveOperations method  return the transaction id saved on database
+    const operations = transaction.getOperations();
+    const transId = await transaction.saveOperations();
+
+    // create a new transaction instance
+    const newTransaction = new Transaction(true);
+
+    // load the saved operations in the new transaction instance using the transId
+    await newTransaction.loadDbTransaction(transId);
+
+    // if you need you can get the operations object 
+    const newOperations = newTransaction.getOperations();
+
+    // finally run and rollback
+    try {
+        const final = await newTransaction.run()
+    } catch (err) {
+        const rolled = await newTransaction.rollback()
+    }
+}
+
+start()
+
+
+```
+
+
+### More examples
 
 See tests folder for more examples
 
