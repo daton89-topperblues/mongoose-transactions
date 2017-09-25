@@ -124,41 +124,11 @@ async function start () {
 }
 
 start()
-
-
 ```
 
-### Using database to save transactions
-
-Create new transaction instance with the ability to store and load transaction object to/form database.
-
-```js
-const useDB = true
-const transaction = new Transaction(useDB)
-```
-
-First of all you need to get the actual transaction id, you can use the id to load the transaction object from database. 
-
-```js
-/**
-* If the instance is db true, return the actual or new transaction id.
-* @throws Error - Throws error if the instance is not a db instance.
-*/
-const transId = await transaction.getTransactionId()
-```
-You can load a transaction object from database with the loadDbTransaction fuction.
-
-```js
-/**
-* Load transaction from transaction collection on db.
-* @param transactionId - The id of the transaction to load.
-* @trows Error - Throws error if the transaction is not found
-*/
-await transaction.loadDbTransaction(transId)
-```
+### Operation Object
 
 You can get the operations object by calling getOperations method.
-
 ```js
 /**
 * Get transaction operations array from transaction object or collection on db.
@@ -166,6 +136,62 @@ You can get the operations object by calling getOperations method.
 *                                  else return the elements of current transaction (default null).
 */
 const operations = transaction.getOperations();
+```
+
+For debug purposes you can inspect the array of transaction operation object that is designed like this:
+```js
+// console.log(operations)
+[{
+    /** The transaction type to run */
+    type: string, // 'insert', 'update', 'remove'
+    /** The transaction type to execute for rollback */
+    rollbackType: string, // 'remove', 'update', 'insert'
+    /** The mongoose model instance */
+    model: any, // compiled mongoose model 
+    /** The mongoose model name */
+    modelName: string, // 'Person'
+    /** The mongoose model instance before transaction if exists */
+    oldModel: any, // model used for rollback
+    /** The id of the object */
+    findId: any, 
+    /** The data */
+    data: any, 
+    /** options configuration query */
+    options: any,
+    /** The current status of the operation */
+    status: Status
+}]
+
+/** The operations possible states are: */
+Status = ["Pending", "Success", "Error", "Rollback", "ErrorRollback"]
+```
+The status is automatically updated, so you can check the current status of your transaction operations every time you need
+
+### Using database to save transactions
+
+Create new transaction instance with the ability to store and load transaction object to/form database.
+```js
+const useDB = true
+const transaction = new Transaction(useDB)
+```
+
+First of all you need to get the actual transaction id, you can use the id to load the transaction object from database. 
+```js
+/**
+* If the instance is db true, return the actual or new transaction id.
+* @throws Error - Throws error if the instance is not a db instance.
+*/
+const transId = await transaction.getTransactionId()
+```
+
+You can load a transaction object from database with the loadDbTransaction fuction.
+```js
+/**
+* Load transaction from transaction collection on db.
+* @param transactionId - The id of the transaction to load.
+* @trows Error - Throws error if the transaction is not found
+*/
+await transaction.loadDbTransaction(transId)
 ```
 
 You can save the operations object on database by calling saveOperations method.
@@ -229,13 +255,13 @@ start()
 ```
 
 
-### More examples
+## More examples
 
 See tests folder for more examples
 
 Feel free to open issues, fork project, and collaborate with us!
 
-### Contribute
+## Contribute
 
 Clone repository locally and install dependencies:
 ```sh
@@ -256,9 +282,11 @@ Typescript v2.4.1
 
 Jest v20.0.4
 
-### Changelog
+## Changelog
 
-1.0.4 fixed exports default error 
+1.1.0 add transaction persistence
+
+1.0.4 fix exports default error 
 
 ### Contributors 
 [@topperblues](https://github.com/topperblues) Nicola Bonavita
