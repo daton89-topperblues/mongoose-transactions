@@ -43,6 +43,7 @@ var options = {
 };
 mongoose.Promise = global.Promise;
 mongoose.connection
+    // .once('open', () => { })
     .on('error', function (err) { return console.warn('Warning', err); });
 var personSchema = new mongoose.Schema({
     age: Number,
