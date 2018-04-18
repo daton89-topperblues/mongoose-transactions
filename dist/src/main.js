@@ -38,7 +38,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose = require("mongoose");
 var mongooseTransactions_collection_1 = require("./mongooseTransactions.collection");
 /** Class representing a transaction. */
-var Transaction = (function () {
+var Transaction = /** @class */ (function () {
     /**
      * Create a transaction.
      * @param useDb - The boolean parameter allow to use transaction collection on db (default false)
