@@ -1,415 +1,433 @@
-
 import Transaction from "../src/main";
 
-import * as mongoose from 'mongoose';
+import * as mongoose from "mongoose";
 
 const options: any = {
-    useMongoClient: true
-}
+  useMongoClient: true
+};
 
-mongoose.Promise = global.Promise
+mongoose.Promise = global.Promise;
 
 mongoose.connection
-    // .once('open', () => { })
-    .on('error', (err) => console.warn('Warning', err));
+  // .once('open', () => { })
+  .on("error", (err) => console.warn("Warning", err));
 
 const personSchema = new mongoose.Schema({
-    age: Number,
-    name: String
-})
+  age: Number,
+  contact: {
+    email: {
+        alias: "email",
+        index: true,
+        sparse: true,
+        type: String,
+        unique: true,
+    }
+  },
+  name: String
+});
 
 const carSchema = new mongoose.Schema({
-    age: Number,
-    name: String
-})
+  age: Number,
+  name: String
+});
 
-const Person = mongoose.model('Person', personSchema)
+const Person = mongoose.model("Person", personSchema);
 
-const Car = mongoose.model('Car', carSchema)
+const Car = mongoose.model("Car", carSchema);
 
 const transaction = new Transaction();
 
 async function dropCollections() {
-    await Person.remove({});
-    await Car.remove({});
+  await Person.remove({});
+  await Car.remove({});
 }
 
-describe('Transaction run ', () => {
+describe("Transaction run ", () => {
+  // Read more about fake timers: http://facebook.github.io/jest/docs/en/timer-mocks.html#content
+  // jest.useFakeTimers();
 
-    // Read more about fake timers: http://facebook.github.io/jest/docs/en/timer-mocks.html#content
-    // jest.useFakeTimers();
+  beforeAll(async () => {
+    await mongoose.connect(
+      `mongodb://localhost/mongoose-transactions`,
+      options
+    );
+  });
 
-    beforeAll(async () => {
-        await mongoose.connect(`mongodb://localhost/mongoose-transactions`, options);
-    });
+//   afterAll(async () => {
+//     await dropCollections();
+//   });
 
-    afterAll(async () => {
-        await dropCollections()
-    })
+  beforeEach(async () => {
+    await dropCollections();
+    transaction.clean();
+  });
 
-    beforeEach(async () => {
-        await dropCollections()
-        transaction.clean()
-    });
+  test("insert", async () => {
+    const person: string = "Person";
 
-    test('insert', async () => {
+    const jonathanObject: any = {
+      age: 18,
+      name: "Jonathan"
+    };
 
-        const person: string = "Person"
+    transaction.insert(person, jonathanObject);
 
-        const jonathanObject: any = {
-            age: 18,
-            name: 'Jonathan'
-        }
+    const final = await transaction.run().catch(console.error);
 
-        transaction.insert(person, jonathanObject)
+    const jonathan: any = await Person.findOne(jonathanObject).exec();
 
-        const final = await transaction.run().catch(console.error)
+    expect(jonathan.name).toBe(jonathanObject.name);
 
-        const jonathan: any = await Person.findOne(jonathanObject).exec()
+    expect(jonathan.age).toBe(jonathanObject.age);
 
-        expect(jonathan.name).toBe(jonathanObject.name)
+    expect(final).toBeInstanceOf(Array);
 
-        expect(jonathan.age).toBe(jonathanObject.age)
+    expect(final.length).toBe(1);
+  });
 
-        expect(final).toBeInstanceOf(Array)
+  test("it should raise a duplicate key error", async () => {
+    const person: string = "Person";
 
-        expect(final.length).toBe(1)
+    const jonathanObject: any = {
+      age: 18,
+      email: "myemail@blabla.com",
+      name: "Jonathan",
+    };
 
-    });
+    const tonyObject: any = {
+      age: 29,
+      email: "myemail@blabla.com",
+      name: "tony",
+    };
 
-    test('update', async () => {
+    transaction.insert(person, jonathanObject);
 
-        const person: string = "Person"
+    transaction.insert(person, tonyObject);
 
-        const tonyObject: any = {
-            age: 28,
-            name: 'Tony'
-        }
+    try {
+      const final = await transaction.run()
 
-        const nicolaObject: any = {
-            age: 32,
-            name: 'Nicola',
-        }
+      expect(final).toBeFalsy()
 
-        const personId = transaction.insert(person, tonyObject)
+    } catch (error) {
 
-        transaction.update(person, personId, nicolaObject)
+      expect(error).toBeTruthy();
 
-        const final = await transaction.run()
+      expect(error.error.code).toBe(11000);
 
-        const nicola: any = await Person.findOne(nicolaObject).exec()
+    }
+  });
 
-        expect(nicola.name).toBe(nicolaObject.name)
+  test("update", async () => {
+    const person: string = "Person";
 
-        expect(nicola.age).toBe(nicolaObject.age)
+    const tonyObject: any = {
+      age: 28,
+      name: "Tony"
+    };
 
-        expect(final).toBeInstanceOf(Array)
+    const nicolaObject: any = {
+      age: 32,
+      name: "Nicola"
+    };
 
-        expect(final.length).toBe(2)
+    const personId = transaction.insert(person, tonyObject);
 
-    });
+    transaction.update(person, personId, nicolaObject);
 
-    test('remove', async () => {
+    const final = await transaction.run();
 
-        const person: string = "Person"
+    const nicola: any = await Person.findOne(nicolaObject).exec();
 
-        const bobObject: any = {
-            age: 45,
-            name: 'Bob',
-        }
+    expect(nicola.name).toBe(nicolaObject.name);
 
-        const aliceObject: any = {
-            age: 23,
-            name: 'Alice',
-        }
+    expect(nicola.age).toBe(nicolaObject.age);
 
-        const personId = transaction.insert(person, bobObject)
+    expect(final).toBeInstanceOf(Array);
 
-        transaction.update(person, personId, aliceObject)
+    expect(final.length).toBe(2);
+  });
 
-        transaction.remove(person, personId)
+  test("remove", async () => {
+    const person: string = "Person";
 
-        const final = await transaction.run()
+    const bobObject: any = {
+      age: 45,
+      name: "Bob"
+    };
 
-        const bob: any = await Person.findOne(bobObject).exec()
+    const aliceObject: any = {
+      age: 23,
+      name: "Alice"
+    };
 
-        const alice: any = await Person.findOne(aliceObject).exec()
+    const personId = transaction.insert(person, bobObject);
 
-        expect(final).toBeInstanceOf(Array)
+    transaction.update(person, personId, aliceObject);
 
-        expect(final.length).toBe(3)
+    transaction.remove(person, personId);
 
-        expect(alice).toBeNull()
+    const final = await transaction.run();
 
-        expect(bob).toBeNull()
+    const bob: any = await Person.findOne(bobObject).exec();
 
-    })
+    const alice: any = await Person.findOne(aliceObject).exec();
 
-    test('Fail remove', async () => {
+    expect(final).toBeInstanceOf(Array);
 
-        const person: string = "Person"
+    expect(final.length).toBe(3);
 
-        const bobObject: any = {
-            age: 45,
-            name: 'Bob',
-        }
+    expect(alice).toBeNull();
 
-        const aliceObject: any = {
-            age: 23,
-            name: 'Alice',
-        }
+    expect(bob).toBeNull();
+  });
 
-        const personId = transaction.insert(person, bobObject)
+  test("Fail remove", async () => {
+    const person: string = "Person";
 
-        transaction.update(person, personId, aliceObject)
+    const bobObject: any = {
+      age: 45,
+      name: "Bob"
+    };
 
-        const failObjectId = new mongoose.Types.ObjectId()
+    const aliceObject: any = {
+      age: 23,
+      name: "Alice"
+    };
 
-        transaction.remove(person, failObjectId)
+    const personId = transaction.insert(person, bobObject);
 
-        expect(personId).not.toEqual(failObjectId)
+    transaction.update(person, personId, aliceObject);
 
-        try {
+    const failObjectId = new mongoose.Types.ObjectId();
 
-            const final = await transaction.run()
+    transaction.remove(person, failObjectId);
 
-        } catch (error) {
+    expect(personId).not.toEqual(failObjectId);
 
-            expect(error.executedTransactions).toEqual(2)
+    try {
+      const final = await transaction.run();
+    } catch (error) {
+      expect(error.executedTransactions).toEqual(2);
 
-            expect(error.remainingTransactions).toEqual(1)
+      expect(error.remainingTransactions).toEqual(1);
 
-            expect(error.error.message).toBe('Entity not found')
+      expect(error.error.message).toBe("Entity not found");
 
-            expect(error.data).toEqual(failObjectId)
-        }
+      expect(error.data).toEqual(failObjectId);
+    }
+  });
 
-    })
+  test("Fail remove with rollback", async () => {
+    const person: string = "Person";
 
-    test('Fail remove with rollback', async () => {
+    const bobObject: any = {
+      age: 45,
+      name: "Bob"
+    };
 
-        const person: string = "Person"
+    const aliceObject: any = {
+      age: 23,
+      name: "Alice"
+    };
 
-        const bobObject: any = {
-            age: 45,
-            name: 'Bob',
-        }
+    const personId = transaction.insert(person, bobObject);
 
-        const aliceObject: any = {
-            age: 23,
-            name: 'Alice',
-        }
+    transaction.update(person, personId, aliceObject);
 
-        const personId = transaction.insert(person, bobObject)
+    const failObjectId = new mongoose.Types.ObjectId();
 
-        transaction.update(person, personId, aliceObject)
+    transaction.remove(person, failObjectId);
 
-        const failObjectId = new mongoose.Types.ObjectId()
+    expect(personId).not.toEqual(failObjectId);
 
-        transaction.remove(person, failObjectId)
+    try {
+      const final = await transaction.run();
+    } catch (error) {
+      expect(error.executedTransactions).toEqual(2);
 
-        expect(personId).not.toEqual(failObjectId)
+      expect(error.remainingTransactions).toEqual(1);
 
-        try {
+      expect(error.error.message).toBe("Entity not found");
 
-            const final = await transaction.run()
+      expect(error.data).toEqual(failObjectId);
 
-        } catch (error) {
+      const rollbackObj = await transaction.rollback().catch(console.error);
 
-            expect(error.executedTransactions).toEqual(2)
+      // First revert update of bob object to alice
+      expect(rollbackObj[0].name).toBe(aliceObject.name);
+      expect(rollbackObj[0].age).toBe(aliceObject.age);
+      // Then revert the insert of bob object
+      expect(rollbackObj[1].name).toBe(bobObject.name);
+      expect(rollbackObj[1].age).toBe(bobObject.age);
+    }
+  });
 
-            expect(error.remainingTransactions).toEqual(1)
+  test("Fail remove with rollback and clean, multiple update, run and insert", async () => {
+    const person: string = "Person";
 
-            expect(error.error.message).toBe('Entity not found')
+    const bobObject: any = {
+      age: 45,
+      name: "Bob"
+    };
 
-            expect(error.data).toEqual(failObjectId)
+    const aliceObject: any = {
+      age: 23,
+      name: "Alice"
+    };
 
-            const rollbackObj = await transaction.rollback().catch(console.error)
+    const bobId = transaction.insert(person, bobObject);
 
-            // First revert update of bob object to alice
-            expect(rollbackObj[0].name).toBe(aliceObject.name)
-            expect(rollbackObj[0].age).toBe(aliceObject.age)
-            // Then revert the insert of bob object
-            expect(rollbackObj[1].name).toBe(bobObject.name)
-            expect(rollbackObj[1].age).toBe(bobObject.age)
-        }
+    const insertRun = await transaction.run();
 
-    })
+    const bobFind: any = await Person.findById(bobId).exec();
+    expect(bobFind.name).toBe(bobObject.name);
+    expect(bobFind.age).toBe(bobObject.age);
+    expect(insertRun).toBeInstanceOf(Array);
+    expect(insertRun.length).toBe(1);
 
-    test('Fail remove with rollback and clean, multiple update, run and insert', async () => {
+    transaction.clean();
 
-        const person: string = "Person"
+    const aliceId = transaction.insert(person, aliceObject);
 
-        const bobObject: any = {
-            age: 45,
-            name: 'Bob',
-        }
+    expect(bobId).not.toEqual(aliceId);
 
-        const aliceObject: any = {
-            age: 23,
-            name: 'Alice',
-        }
+    // Invert bob and alice
+    transaction.update(person, bobId, { name: "Maria" });
 
-        const bobId = transaction.insert(person, bobObject)
+    transaction.update(person, aliceId, { name: "Giuseppe" });
 
-        const insertRun = await transaction.run()
+    const failObjectId = new mongoose.Types.ObjectId();
+    // ERROR REMOVE
+    transaction.remove(person, failObjectId);
 
-        const bobFind: any = await Person.findById(bobId).exec()
-        expect(bobFind.name).toBe(bobObject.name)
-        expect(bobFind.age).toBe(bobObject.age)
-        expect(insertRun).toBeInstanceOf(Array)
-        expect(insertRun.length).toBe(1)
+    expect(bobId).not.toEqual(failObjectId);
+    expect(aliceId).not.toEqual(failObjectId);
 
-        transaction.clean()
+    try {
+      const final = await transaction.run();
+    } catch (error) {
+      // expect(error).toBeNaN()
 
-        const aliceId = transaction.insert(person, aliceObject)
+      expect(error.executedTransactions).toEqual(3);
 
-        expect(bobId).not.toEqual(aliceId)
+      expect(error.remainingTransactions).toEqual(1);
 
-        // Invert bob and alice
-        transaction.update(person, bobId, { name: 'Maria' })
+      expect(error.error.message).toBe("Entity not found");
 
-        transaction.update(person, aliceId, { name: 'Giuseppe' })
+      expect(error.data).toEqual(failObjectId);
 
-        const failObjectId = new mongoose.Types.ObjectId()
-        // ERROR REMOVE
-        transaction.remove(person, failObjectId)
+      const rollbacks = await transaction.rollback().catch(console.error);
 
-        expect(bobId).not.toEqual(failObjectId)
-        expect(aliceId).not.toEqual(failObjectId)
+      // expect(rollbacks).toBeNaN()
 
-        try {
+      // First revert update of bob object to alice
+      expect(rollbacks[0].name).toBe("Giuseppe");
+      expect(rollbacks[0].age).toBe(aliceObject.age);
+      // Then revert the insert of bob object
+      expect(rollbacks[1].name).toBe("Maria");
+      expect(rollbacks[1].age).toBe(bobObject.age);
 
-            const final = await transaction.run()
+      const bob: any = await Person.findById(bobId).exec();
+      expect(bob.name).toBe(bobObject.name);
+      expect(bob.age).toBe(bobObject.age);
 
-        } catch (error) {
+      const alice: any = await Person.findOne(aliceObject).exec();
+      expect(alice).toBeNull();
+    }
+  });
 
-            // expect(error).toBeNaN()
+  test("Fail update with rollback and clean, multiple update, run and remove", async () => {
+    const person: string = "Person";
 
-            expect(error.executedTransactions).toEqual(3)
+    const bobObject: any = {
+      age: 45,
+      name: "Bob"
+    };
 
-            expect(error.remainingTransactions).toEqual(1)
+    const aliceObject: any = {
+      age: 23,
+      name: "Alice"
+    };
 
-            expect(error.error.message).toBe('Entity not found')
+    const mariaObject: any = {
+      age: 43,
+      name: "Maria"
+    };
 
-            expect(error.data).toEqual(failObjectId)
+    const giuseppeObject: any = {
+      age: 33,
+      name: "Giuseppe"
+    };
 
-            const rollbacks = await transaction.rollback().catch(console.error)
+    const bobId = transaction.insert(person, bobObject);
 
-            // expect(rollbacks).toBeNaN()
+    const insertRun = await transaction.run();
 
-            // First revert update of bob object to alice
-            expect(rollbacks[0].name).toBe('Giuseppe')
-            expect(rollbacks[0].age).toBe(aliceObject.age)
-            // Then revert the insert of bob object
-            expect(rollbacks[1].name).toBe('Maria')
-            expect(rollbacks[1].age).toBe(bobObject.age)
+    const bobFind: any = await Person.findById(bobId).exec();
+    expect(bobFind.name).toBe(bobObject.name);
+    expect(bobFind.age).toBe(bobObject.age);
+    expect(insertRun).toBeInstanceOf(Array);
+    expect(insertRun.length).toBe(1);
 
-            const bob: any = await Person.findById(bobId).exec()
-            expect(bob.name).toBe(bobObject.name)
-            expect(bob.age).toBe(bobObject.age)
+    transaction.clean();
 
-            const alice: any = await Person.findOne(aliceObject).exec()
-            expect(alice).toBeNull()
+    const aliceId = transaction.insert(person, aliceObject);
 
-        }
+    expect(bobId).not.toEqual(aliceId);
 
-    })
+    transaction.remove(person, bobId);
+    transaction.remove(person, aliceId);
 
-    test('Fail update with rollback and clean, multiple update, run and remove', async () => {
+    const mariaId = transaction.insert(person, mariaObject);
+    expect(mariaId).not.toEqual(bobId);
+    expect(mariaId).not.toEqual(aliceId);
 
-        const person: string = "Person"
+    // Update maria
+    transaction.update(person, mariaId, giuseppeObject);
 
-        const bobObject: any = {
-            age: 45,
-            name: 'Bob',
-        }
+    // ERROR UPDATE
+    transaction.update(person, aliceId, { name: "Error" });
 
-        const aliceObject: any = {
-            age: 23,
-            name: 'Alice',
-        }
+    // unreachable transactions
+    transaction.update(person, mariaId, { name: "unreachable" });
+    transaction.insert(person, { name: "unreachable" });
 
-        const mariaObject: any = {
-            age: 43,
-            name: 'Maria',
-        }
+    try {
+      const final = await transaction.run();
+    } catch (error) {
+      // expect(error).toBeNaN()
 
-        const giuseppeObject: any = {
-            age: 33,
-            name: 'Giuseppe',
-        }
+      expect(error.executedTransactions).toEqual(5);
 
-        const bobId = transaction.insert(person, bobObject)
+      expect(error.remainingTransactions).toEqual(3);
 
-        const insertRun = await transaction.run()
+      expect(error.error.message).toBe("Entity not found");
 
-        const bobFind: any = await Person.findById(bobId).exec()
-        expect(bobFind.name).toBe(bobObject.name)
-        expect(bobFind.age).toBe(bobObject.age)
-        expect(insertRun).toBeInstanceOf(Array)
-        expect(insertRun.length).toBe(1)
+      expect(error.data.id).toEqual(aliceId);
+      expect(error.data.data.name).toEqual("Error");
 
-        transaction.clean()
+      const rollbacks = await transaction.rollback().catch(console.error);
 
-        const aliceId = transaction.insert(person, aliceObject)
+      expect(rollbacks[0].name).toEqual(giuseppeObject.name);
+      expect(rollbacks[0].age).toEqual(giuseppeObject.age);
+      expect(rollbacks[1].name).toEqual(mariaObject.name);
+      expect(rollbacks[1].age).toEqual(mariaObject.age);
+      expect(rollbacks[2].name).toEqual(aliceObject.name);
+      expect(rollbacks[2].age).toEqual(aliceObject.age);
+      expect(rollbacks[3].name).toEqual(bobObject.name);
+      expect(rollbacks[3].age).toEqual(bobObject.age);
+      expect(rollbacks[4].name).toEqual(aliceObject.name);
+      expect(rollbacks[4].age).toEqual(aliceObject.age);
 
-        expect(bobId).not.toEqual(aliceId)
+      const results: any = await Person.find({})
+        .lean()
+        .exec();
 
-        transaction.remove(person, bobId)
-        transaction.remove(person, aliceId)
+      expect(results.length).toBe(1);
+      expect(results[0].name).toEqual(bobObject.name);
+      expect(results[0].age).toEqual(bobObject.age);
+    }
+  });
 
-        const mariaId = transaction.insert(person, mariaObject)
-        expect(mariaId).not.toEqual(bobId)
-        expect(mariaId).not.toEqual(aliceId)
-
-        // Update maria
-        transaction.update(person, mariaId, giuseppeObject)
-
-        // ERROR UPDATE
-        transaction.update(person, aliceId, { name: 'Error' })
-
-        // unreachable transactions
-        transaction.update(person, mariaId, { name: 'unreachable' })
-        transaction.insert(person, { name: 'unreachable' })
-
-        try {
-
-            const final = await transaction.run()
-
-        } catch (error) {
-
-            // expect(error).toBeNaN()
-
-            expect(error.executedTransactions).toEqual(5)
-
-            expect(error.remainingTransactions).toEqual(3)
-
-            expect(error.error.message).toBe('Entity not found')
-
-            expect(error.data.id).toEqual(aliceId)
-            expect(error.data.data.name).toEqual('Error')
-
-            const rollbacks = await transaction.rollback().catch(console.error)
-
-            expect(rollbacks[0].name).toEqual(giuseppeObject.name)
-            expect(rollbacks[0].age).toEqual(giuseppeObject.age)
-            expect(rollbacks[1].name).toEqual(mariaObject.name)
-            expect(rollbacks[1].age).toEqual(mariaObject.age)
-            expect(rollbacks[2].name).toEqual(aliceObject.name)
-            expect(rollbacks[2].age).toEqual(aliceObject.age)
-            expect(rollbacks[3].name).toEqual(bobObject.name)
-            expect(rollbacks[3].age).toEqual(bobObject.age)
-            expect(rollbacks[4].name).toEqual(aliceObject.name)
-            expect(rollbacks[4].age).toEqual(aliceObject.age)
-
-            const results: any = await Person.find({}).lean().exec()
-
-            expect(results.length).toBe(1)
-            expect(results[0].name).toEqual(bobObject.name)
-            expect(results[0].age).toEqual(bobObject.age)
-
-        }
-
-    })
-})
+});
