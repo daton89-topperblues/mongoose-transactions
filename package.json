@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "tslint -c tslint.json 'src/**/*.ts' '__tests__/**/*.ts'",
     "pretest": "npm run lint",
-    "test": "jest --forceExit --runInBand"
+    "test": "jest --forceExit --runInBand",
+    "build": "tsc -w false"
   },
   "pre-commit": [
     "test"
