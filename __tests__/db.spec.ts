@@ -9,8 +9,7 @@ describe('Transaction using DB ', () => {
 
     const options: any = {
         reconnectInterval: 10,
-        reconnectTries: 10,
-        useMongoClient: true,
+        reconnectTries: 10
     }
 
     mongoose.connection

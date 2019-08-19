@@ -68,7 +68,7 @@ var Transaction = (function () {
             var loadedTransaction;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, mongooseTransactions_collection_1.default.findById(transactionId).lean().exec()];
+                    case 0: return [4 /*yield*/, mongooseTransactions_collection_1.default.findOne({ _id: transactionId }).lean().exec()];
                     case 1:
                         loadedTransaction = _a.sent();
                         if (loadedTransaction && loadedTransaction.operations) {
@@ -107,7 +107,7 @@ var Transaction = (function () {
                     case 1:
                         _a.sent();
                         return [3 /*break*/, 4];
-                    case 2: return [4 /*yield*/, mongooseTransactions_collection_1.default.findByIdAndRemove(transactionId).exec()];
+                    case 2: return [4 /*yield*/, mongooseTransactions_collection_1.default.findOneAndRemove({ _id: transactionId }).exec()];
                     case 3:
                         _a.sent();
                         _a.label = 4;
@@ -151,7 +151,7 @@ var Transaction = (function () {
                 switch (_a.label) {
                     case 0:
                         if (!transactionId) return [3 /*break*/, 2];
-                        return [4 /*yield*/, mongooseTransactions_collection_1.default.findById(transactionId).lean().exec()];
+                        return [4 /*yield*/, mongooseTransactions_collection_1.default.findOne({ _id: transactionId }).lean().exec()];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2: return [2 /*return*/, this.operations];
                 }
@@ -442,7 +442,7 @@ var Transaction = (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, model.findById(findId).lean().exec()];
+                    case 0: return [4 /*yield*/, model.findOne({ _id: findId }).lean().exec()];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -486,7 +486,7 @@ var Transaction = (function () {
         var _this = this;
         if (options === void 0) { options = { new: false }; }
         return new Promise(function (resolve, reject) {
-            model.findByIdAndUpdate(id, data, options, function (err, result) {
+            model.findOneAndUpdate({ _id: id }, data, options, function (err, result) {
                 if (err) {
                     return reject(_this.transactionError(err, { id: id, data: data }));
                 }
@@ -502,7 +502,7 @@ var Transaction = (function () {
     Transaction.prototype.removeTransaction = function (model, id) {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            model.findByIdAndRemove(id, function (err, data) {
+            model.findOneAndRemove({ _id: id }, function (err, data) {
                 if (err) {
                     return reject(_this.transactionError(err, id));
                 }
