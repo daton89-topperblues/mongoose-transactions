@@ -38,9 +38,7 @@ var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var main_1 = require("../src/main");
 var mongoose = require("mongoose");
-var options = {
-    useMongoClient: true
-};
+var options = {};
 mongoose.Promise = global.Promise;
 mongoose.connection
     .on("error", function (err) { return console.warn("Warning", err); });
@@ -331,7 +329,7 @@ describe("Transaction run ", function () {
                     return [4 /*yield*/, transaction.run()];
                 case 1:
                     insertRun = _a.sent();
-                    return [4 /*yield*/, Person.findById(bobId).exec()];
+                    return [4 /*yield*/, Person.findOne({ _id: bobId }).exec()];
                 case 2:
                     bobFind = _a.sent();
                     expect(bobFind.name).toBe(bobObject.name);
@@ -373,7 +371,7 @@ describe("Transaction run ", function () {
                     // Then revert the insert of bob object
                     expect(rollbacks[1].name).toBe("Maria");
                     expect(rollbacks[1].age).toBe(bobObject.age);
-                    return [4 /*yield*/, Person.findById(bobId).exec()];
+                    return [4 /*yield*/, Person.findOne({ _id: bobId }).exec()];
                 case 7:
                     bob = _a.sent();
                     expect(bob.name).toBe(bobObject.name);
@@ -413,7 +411,7 @@ describe("Transaction run ", function () {
                     return [4 /*yield*/, transaction.run()];
                 case 1:
                     insertRun = _a.sent();
-                    return [4 /*yield*/, Person.findById(bobId).exec()];
+                    return [4 /*yield*/, Person.findOne({ _id: bobId }).exec()];
                 case 2:
                     bobFind = _a.sent();
                     expect(bobFind.name).toBe(bobObject.name);

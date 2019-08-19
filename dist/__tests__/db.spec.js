@@ -42,8 +42,7 @@ mongoose.Promise = global.Promise;
 describe('Transaction using DB ', function () {
     var options = {
         reconnectInterval: 10,
-        reconnectTries: 10,
-        useMongoClient: true,
+        reconnectTries: 10
     };
     mongoose.connection
         .once('open', function () { console.log('Mongo connected!'); })

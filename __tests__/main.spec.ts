@@ -2,9 +2,7 @@ import Transaction from "../src/main";
 
 import * as mongoose from "mongoose";
 
-const options: any = {
-  useMongoClient: true
-};
+const options: any = {};
 
 mongoose.Promise = global.Promise;
 
@@ -280,7 +278,7 @@ describe("Transaction run ", () => {
 
     const insertRun = await transaction.run();
 
-    const bobFind: any = await Person.findById(bobId).exec();
+    const bobFind: any = await Person.findOne({_id: bobId}).exec();
     expect(bobFind.name).toBe(bobObject.name);
     expect(bobFind.age).toBe(bobObject.age);
     expect(insertRun).toBeInstanceOf(Array);
@@ -328,7 +326,7 @@ describe("Transaction run ", () => {
       expect(rollbacks[1].name).toBe("Maria");
       expect(rollbacks[1].age).toBe(bobObject.age);
 
-      const bob: any = await Person.findById(bobId).exec();
+      const bob: any = await Person.findOne({_id: bobId}).exec();
       expect(bob.name).toBe(bobObject.name);
       expect(bob.age).toBe(bobObject.age);
 
@@ -364,7 +362,7 @@ describe("Transaction run ", () => {
 
     const insertRun = await transaction.run();
 
-    const bobFind: any = await Person.findById(bobId).exec();
+    const bobFind: any = await Person.findOne({_id: bobId}).exec();
     expect(bobFind.name).toBe(bobObject.name);
     expect(bobFind.age).toBe(bobObject.age);
     expect(insertRun).toBeInstanceOf(Array);

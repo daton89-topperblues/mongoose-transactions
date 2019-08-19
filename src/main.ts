@@ -62,7 +62,7 @@ export default class Transaction {
      */
     public async loadDbTransaction(transactionId) {
 
-        const loadedTransaction: any = await Model.findById(transactionId).lean().exec()
+        const loadedTransaction: any = await Model.findOne({_id: transactionId}).lean().exec()
         if (loadedTransaction && loadedTransaction.operations) {
             loadedTransaction.operations.forEach((operation) => {
                 operation.model = mongoose.model(operation.modelName);
@@ -89,7 +89,7 @@ export default class Transaction {
             if (transactionId === null) {
                 await Model.remove({}).exec()
             } else {
-                await Model.findByIdAndRemove(transactionId).exec()
+                await Model.findOneAndRemove({_id: transactionId}).exec()
             }
         } catch (error) {
             throw new Error('Fail remove transaction[s] in removeDbTransaction')
@@ -117,7 +117,7 @@ export default class Transaction {
     public async getOperations(transactionId = null) {
 
         if (transactionId) {
-            return await Model.findById(transactionId).lean().exec()
+            return await Model.findOne({_id: transactionId}).lean().exec()
         } else {
             return this.operations
         }
@@ -379,7 +379,7 @@ export default class Transaction {
     }
 
     private async findByIdTransaction(model, findId) {
-        return await model.findById(findId).lean().exec();
+        return await model.findOne({_id: findId}).lean().exec();
     }
 
     private async createTransaction() {
@@ -412,7 +412,7 @@ export default class Transaction {
     private updateTransaction(model, id, data, options = { new: false }) {
 
         return new Promise((resolve, reject) => {
-            model.findByIdAndUpdate(id, data, options, (err, result) => {
+            model.findOneAndUpdate({_id: id}, data, options, (err, result) => {
 
                 if (err) {
                     return reject(this.transactionError(err, { id, data }))
@@ -430,7 +430,7 @@ export default class Transaction {
     private removeTransaction(model, id) {
         return new Promise((resolve, reject) => {
 
-            model.findByIdAndRemove(id, (err, data) => {
+            model.findOneAndRemove({_id: id}, (err, data) => {
 
                 if (err) {
                     return reject(this.transactionError(err, id))
