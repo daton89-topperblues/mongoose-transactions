@@ -38,7 +38,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose = require("mongoose");
 var mongooseTransactions_collection_1 = require("./mongooseTransactions.collection");
 /** Class representing a transaction. */
-var Transaction = (function () {
+var Transaction = /** @class */ (function () {
     /**
      * Create a transaction.
      * @param useDb - The boolean parameter allow to use transaction collection on db (default false)
@@ -221,6 +221,7 @@ var Transaction = (function () {
         }
         var transactionObj = {
             data: data,
+            filter: null,
             findId: data._id,
             model: model,
             modelName: modelName,
@@ -244,6 +245,7 @@ var Transaction = (function () {
         var model = mongoose.model(modelName);
         var transactionObj = {
             data: data,
+            filter: null,
             findId: findId,
             model: model,
             modelName: modelName,
@@ -252,6 +254,29 @@ var Transaction = (function () {
             rollbackType: "update",
             status: "Pending" /* pending */,
             type: "update",
+        };
+        this.operations.push(transactionObj);
+    };
+    /**
+     * Create the UpdateMany transaction and rollback states.
+     * @param modelName - The string containing the mongoose model name.
+     * @param filter - The filter query to update.
+     * @param dataObj - The object containing data to update into mongoose model.
+     */
+    Transaction.prototype.updateMany = function (modelName, filter, data, options) {
+        if (options === void 0) { options = {}; }
+        var model = mongoose.model(modelName);
+        var transactionObj = {
+            data: data,
+            filter: filter,
+            findId: null,
+            model: model,
+            modelName: modelName,
+            oldModel: null,
+            options: options,
+            rollbackType: "updateMany",
+            status: "Pending" /* pending */,
+            type: "updateMany",
         };
         this.operations.push(transactionObj);
     };
@@ -265,6 +290,7 @@ var Transaction = (function () {
         var model = mongoose.model(modelName);
         var transactionObj = {
             data: null,
+            filter: null,
             findId: findId,
             model: model,
             modelName: modelName,
@@ -314,6 +340,13 @@ var Transaction = (function () {
                                                     .then(function (findRes) {
                                                     transaction.oldModel = findRes;
                                                     return _this.updateTransaction(transaction.model, transaction.findId, transaction.data, transaction.options);
+                                                });
+                                                break;
+                                            case "updateMany":
+                                                operation = this.findByFilter(transaction.model, transaction.filter)
+                                                    .then(function (findRes) {
+                                                    transaction.oldModel = findRes;
+                                                    return _this.updateManyTransaction(transaction.model, transaction.filter, transaction.data, transaction.options);
                                                 });
                                                 break;
                                             case "remove":
@@ -400,6 +433,13 @@ var Transaction = (function () {
                                         case "update":
                                             operation = _this.updateTransaction(transaction.model, transaction.findId, transaction.oldModel);
                                             break;
+                                        case "updateMany":
+                                            var promises_1 = [];
+                                            transaction.oldModel.forEach(function (model) {
+                                                promises_1.push(_this.updateTransaction(transaction.model, model._id.toString(), model));
+                                            });
+                                            operation = Promise.all(promises_1);
+                                            break;
                                         case "remove":
                                             operation = _this.removeTransaction(transaction.model, transaction.findId);
                                             break;
@@ -443,6 +483,16 @@ var Transaction = (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, model.findOne({ _id: findId }).lean().exec()];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
+    Transaction.prototype.findByFilter = function (model, filter) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, model.find(filter).lean().exec()];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -496,6 +546,22 @@ var Transaction = (function () {
                     }
                     return resolve(result);
                 }
+            });
+        });
+    };
+    Transaction.prototype.updateManyTransaction = function (model, filter, data, options) {
+        var _this = this;
+        if (options === void 0) { options = { new: false }; }
+        return new Promise(function (resolve, reject) {
+            model.updateMany(filter, data, options)
+                .then(function (result) {
+                if (!result) {
+                    return reject(_this.transactionError(new Error('Entity not found'), { filter: filter, data: data }));
+                }
+                return resolve(result);
+            })
+                .catch(function (error) {
+                return reject(_this.transactionError(error, { filter: filter, data: data }));
             });
         });
     };

@@ -146,7 +146,6 @@ describe('Transaction using DB ', function () {
                     return [4 /*yield*/, transaction.loadDbTransaction(transId)];
                 case 2:
                     trans = _a.sent();
-                    console.log("Transaction => ", trans);
                     expect(trans.status).toBe('pending');
                     return [4 /*yield*/, transaction.removeDbTransaction(transId)];
                 case 3:
@@ -247,7 +246,6 @@ describe('Transaction using DB ', function () {
                     return [4 /*yield*/, transaction.loadDbTransaction(transId)];
                 case 6:
                     trans = _a.sent();
-                    console.log('trans =>', trans);
                     expect(trans.status).toBe('Error');
                     expect(trans.operations).toBeInstanceOf(Array);
                     expect(trans.operations.length).toBe(3);
@@ -265,7 +263,6 @@ describe('Transaction using DB ', function () {
                     return [4 /*yield*/, transaction.rollback()];
                 case 9:
                     rolled = _a.sent();
-                    console.log('rolled =>', rolled);
                     expect(rolled).toBeInstanceOf(Array);
                     expect(rolled.length).toBe(2);
                     expect(rolled[0].name).toBe('Nicola');
@@ -283,7 +280,6 @@ describe('Transaction using DB ', function () {
                     return [4 /*yield*/, transaction.rollback()];
                 case 12:
                     rolled = _a.sent();
-                    console.log('rolled =>', rolled);
                     expect(rolled).toBeInstanceOf(Array);
                     expect(rolled.length).toBe(0);
                     return [3 /*break*/, 14];
@@ -296,102 +292,87 @@ describe('Transaction using DB ', function () {
             }
         });
     }); });
-    test('should create transaction, insert, update, remove(fail),'
-        + 'save operations, load operations in new Transaction instance, run and rollback', function () { return __awaiter(_this, void 0, void 0, function () {
-        var person, tonyObject, nicolaObject, id, fakeId, operations, transId, newTransaction, newOperations, final, err_5, trans, err_6, rolled, err_7, rolled, err_8;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    person = 'Person';
-                    tonyObject = {
-                        age: 28,
-                        name: 'Tony'
-                    };
-                    nicolaObject = {
-                        age: 32,
-                        name: 'Nicola',
-                    };
-                    id = transaction.insert(person, tonyObject);
-                    transaction.update(person, id, nicolaObject, { new: true });
-                    fakeId = new mongoose.Types.ObjectId();
-                    transaction.remove(person, fakeId);
-                    operations = transaction.getOperations();
-                    return [4 /*yield*/, transaction.saveOperations()];
-                case 1:
-                    transId = _a.sent();
-                    newTransaction = new main_1.default(true);
-                    return [4 /*yield*/, newTransaction.loadDbTransaction(transId)];
-                case 2:
-                    _a.sent();
-                    newOperations = newTransaction.getOperations();
-                    expect(operations).toEqual(newOperations);
-                    _a.label = 3;
-                case 3:
-                    _a.trys.push([3, 5, , 6]);
-                    return [4 /*yield*/, newTransaction.run()];
-                case 4:
-                    final = _a.sent();
-                    return [3 /*break*/, 6];
-                case 5:
-                    err_5 = _a.sent();
-                    expect(err_5.error.message).toEqual('Entity not found');
-                    expect(err_5.data).toEqual(fakeId);
-                    expect(err_5.executedTransactions).toEqual(2);
-                    expect(err_5.remainingTransactions).toEqual(1);
-                    return [3 /*break*/, 6];
-                case 6:
-                    _a.trys.push([6, 8, , 9]);
-                    return [4 /*yield*/, newTransaction.loadDbTransaction(transId)];
-                case 7:
-                    trans = _a.sent();
-                    console.log('trans =>', trans);
-                    expect(trans.status).toBe('Error');
-                    expect(trans.operations).toBeInstanceOf(Array);
-                    expect(trans.operations.length).toBe(3);
-                    expect(trans.operations[0].status).toBe('Success');
-                    expect(trans.operations[1].status).toBe('Success');
-                    expect(trans.operations[2].status).toBe('Error');
-                    return [3 /*break*/, 9];
-                case 8:
-                    err_6 = _a.sent();
-                    console.error('err =>', err_6);
-                    expect(err_6).toBeNull();
-                    return [3 /*break*/, 9];
-                case 9:
-                    _a.trys.push([9, 11, , 12]);
-                    return [4 /*yield*/, newTransaction.rollback()];
-                case 10:
-                    rolled = _a.sent();
-                    console.log('rolled =>', rolled);
-                    expect(rolled).toBeInstanceOf(Array);
-                    expect(rolled.length).toBe(2);
-                    expect(rolled[0].name).toBe('Nicola');
-                    expect(rolled[0].age).toBe(32);
-                    expect(rolled[1].name).toBe('Tony');
-                    expect(rolled[1].age).toBe(28);
-                    return [3 /*break*/, 12];
-                case 11:
-                    err_7 = _a.sent();
-                    // console.error('roll =>', err);
-                    expect(err_7).toBeNull();
-                    return [3 /*break*/, 12];
-                case 12:
-                    _a.trys.push([12, 14, , 15]);
-                    return [4 /*yield*/, newTransaction.rollback()];
-                case 13:
-                    rolled = _a.sent();
-                    console.log('rolled =>', rolled);
-                    expect(rolled).toBeInstanceOf(Array);
-                    expect(rolled.length).toBe(0);
-                    return [3 /*break*/, 15];
-                case 14:
-                    err_8 = _a.sent();
-                    // console.error('roll =>', err);
-                    expect(err_8).toBeNull();
-                    return [3 /*break*/, 15];
-                case 15: return [2 /*return*/];
-            }
-        });
-    }); });
+    /* test('should create transaction, insert, update, remove(fail),'
+         + 'save operations, load operations in new Transaction instance, run and rollback', async () => {
+ 
+             const person: string = 'Person'
+ 
+             const tonyObject: any = {
+                 age: 28,
+                 name: 'Tony'
+             }
+ 
+             const nicolaObject: any = {
+                 age: 32,
+                 name: 'Nicola',
+             }
+ 
+             const id = transaction.insert(person, tonyObject)
+ 
+             transaction.update(person, id, nicolaObject, { new: true })
+ 
+             const fakeId = new mongoose.Types.ObjectId()
+ 
+             transaction.remove(person, fakeId)
+ 
+             const operations = transaction.getOperations();
+ 
+             const transId = await transaction.saveOperations();
+ 
+             const newTransaction = new Transaction(true);
+ 
+             await newTransaction.loadDbTransaction(transId);
+ 
+             const newOperations = newTransaction.getOperations();
+ 
+             expect(operations).toEqual(newOperations);
+ 
+             try {
+                 const final = await newTransaction.run()
+             } catch (err) {
+                 expect(err.error.message).toEqual('Entity not found')
+                 expect(err.data).toEqual(fakeId)
+                 expect(err.executedTransactions).toEqual(2)
+                 expect(err.remainingTransactions).toEqual(1)
+             }
+ 
+             try {
+                 const trans = await newTransaction.loadDbTransaction(transId)
+                 expect(trans.status).toBe('Error')
+                 expect(trans.operations).toBeInstanceOf(Array)
+                 expect(trans.operations.length).toBe(3)
+                 expect(trans.operations[0].status).toBe('Success')
+                 expect(trans.operations[1].status).toBe('Success')
+                 expect(trans.operations[2].status).toBe('Error')
+ 
+             } catch (err) {
+                 expect(err).toBeNull()
+ 
+             }
+ 
+             try {
+                 const rolled = await newTransaction.rollback()
+                 expect(rolled).toBeInstanceOf(Array)
+                 expect(rolled.length).toBe(2)
+                 expect(rolled[0].name).toBe('Nicola')
+                 expect(rolled[0].age).toBe(32)
+                 expect(rolled[1].name).toBe('Tony')
+                 expect(rolled[1].age).toBe(28)
+             } catch (err) {
+                 // console.error('roll =>', err);
+                 expect(err).toBeNull()
+             }
+ 
+             try {
+                 const rolled = await newTransaction.rollback()
+                 expect(rolled).toBeInstanceOf(Array)
+                 expect(rolled.length).toBe(0)
+ 
+             } catch (err) {
+                 // console.error('roll =>', err);
+                 expect(err).toBeNull()
+             }
+ 
+         })*/
 });
 //# sourceMappingURL=db.spec.js.map

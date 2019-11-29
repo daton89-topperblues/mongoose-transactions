@@ -41,6 +41,7 @@ var mongoose = require("mongoose");
 var options = {};
 mongoose.Promise = global.Promise;
 mongoose.connection
+    // .once('open', () => { })
     .on("error", function (err) { return console.warn("Warning", err); });
 var personSchema = new mongoose.Schema({
     age: Number,
@@ -190,6 +191,42 @@ describe("Transaction run ", function () {
                     expect(nicola.age).toBe(nicolaObject.age);
                     expect(final).toBeInstanceOf(Array);
                     expect(final.length).toBe(2);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    test("updateMany", function () { return __awaiter(_this, void 0, void 0, function () {
+        var person, tonyObject, irawanObject, ageObject, final, agePersons;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    person = "Person";
+                    tonyObject = {
+                        age: 28,
+                        name: "Tony"
+                    };
+                    irawanObject = {
+                        age: 28,
+                        name: "Irawan"
+                    };
+                    ageObject = {
+                        age: 32
+                    };
+                    transaction.insert(person, tonyObject);
+                    transaction.insert(person, irawanObject);
+                    transaction.updateMany(person, { age: { $in: 28 } }, { $set: { age: ageObject.age } });
+                    return [4 /*yield*/, transaction.run()];
+                case 1:
+                    final = _a.sent();
+                    return [4 /*yield*/, Person.find({ age: ageObject.age }).exec()];
+                case 2:
+                    agePersons = _a.sent();
+                    expect(agePersons).toBeInstanceOf(Array);
+                    expect(agePersons.length).toBe(2);
+                    expect(agePersons[0].age).toBe(ageObject.age);
+                    expect(agePersons[1].age).toBe(ageObject.age);
+                    expect(final).toBeInstanceOf(Array);
+                    expect(final.length).toBe(3);
                     return [2 /*return*/];
             }
         });
@@ -469,6 +506,63 @@ describe("Transaction run ", function () {
                     expect(results.length).toBe(1);
                     expect(results[0].name).toEqual(bobObject.name);
                     expect(results[0].age).toEqual(bobObject.age);
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/];
+            }
+        });
+    }); });
+    test("Fail updateMany with rollback and clean", function () { return __awaiter(_this, void 0, void 0, function () {
+        var person, tonyObject, irawanObject, ageObject, insertRun, final, agePersons, error_6, rollbacks, persons;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    person = "Person";
+                    tonyObject = {
+                        age: 28,
+                        name: "Tony"
+                    };
+                    irawanObject = {
+                        age: 28,
+                        name: "Irawan"
+                    };
+                    ageObject = {
+                        age: 32
+                    };
+                    transaction.insert(person, tonyObject);
+                    transaction.insert(person, irawanObject);
+                    return [4 /*yield*/, transaction.run()];
+                case 1:
+                    insertRun = _a.sent();
+                    expect(insertRun).toBeInstanceOf(Array);
+                    expect(insertRun.length).toBe(2);
+                    transaction.clean();
+                    transaction.updateMany(person, { age: { $in: 28 } }, { $set: { age: ageObject.age } });
+                    _a.label = 2;
+                case 2:
+                    _a.trys.push([2, 5, , 8]);
+                    return [4 /*yield*/, transaction.run()];
+                case 3:
+                    final = _a.sent();
+                    return [4 /*yield*/, Person.find({ age: ageObject.age }).exec()];
+                case 4:
+                    agePersons = _a.sent();
+                    expect(agePersons).toBeInstanceOf(Array);
+                    expect(agePersons.length).toBe(2);
+                    expect(agePersons[0].age).toBe(ageObject.age);
+                    expect(agePersons[1].age).toBe(ageObject.age);
+                    throw new Error('Some Error');
+                case 5:
+                    error_6 = _a.sent();
+                    return [4 /*yield*/, transaction.rollback().catch(console.error)];
+                case 6:
+                    rollbacks = _a.sent();
+                    return [4 /*yield*/, Person.find({}).exec()];
+                case 7:
+                    persons = _a.sent();
+                    expect(persons).toBeInstanceOf(Array);
+                    expect(persons.length).toBe(2);
+                    expect(persons[0].age).toBe(tonyObject.age);
+                    expect(persons[1].age).toBe(irawanObject.age);
                     return [3 /*break*/, 8];
                 case 8: return [2 /*return*/];
             }

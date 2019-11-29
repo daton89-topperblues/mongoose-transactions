@@ -79,8 +79,6 @@ describe('Transaction using DB ', () => {
 
         const trans = await transaction.loadDbTransaction(transId)
 
-        console.log("Transaction => ", trans)
-
         expect(trans.status).toBe('pending')
 
         await transaction.removeDbTransaction(transId)
@@ -176,7 +174,6 @@ describe('Transaction using DB ', () => {
 
         try {
             const trans = await transaction.loadDbTransaction(transId)
-            console.log('trans =>', trans);
             expect(trans.status).toBe('Error')
             expect(trans.operations).toBeInstanceOf(Array)
             expect(trans.operations.length).toBe(3)
@@ -192,7 +189,6 @@ describe('Transaction using DB ', () => {
 
         try {
             const rolled = await transaction.rollback()
-            console.log('rolled =>', rolled);
             expect(rolled).toBeInstanceOf(Array)
             expect(rolled.length).toBe(2)
             expect(rolled[0].name).toBe('Nicola')
@@ -206,7 +202,6 @@ describe('Transaction using DB ', () => {
 
         try {
             const rolled = await transaction.rollback()
-            console.log('rolled =>', rolled);
             expect(rolled).toBeInstanceOf(Array)
             expect(rolled.length).toBe(0)
 
@@ -217,7 +212,7 @@ describe('Transaction using DB ', () => {
 
     })
 
-    test('should create transaction, insert, update, remove(fail),'
+   /* test('should create transaction, insert, update, remove(fail),'
         + 'save operations, load operations in new Transaction instance, run and rollback', async () => {
 
             const person: string = 'Person'
@@ -263,7 +258,6 @@ describe('Transaction using DB ', () => {
 
             try {
                 const trans = await newTransaction.loadDbTransaction(transId)
-                console.log('trans =>', trans);
                 expect(trans.status).toBe('Error')
                 expect(trans.operations).toBeInstanceOf(Array)
                 expect(trans.operations.length).toBe(3)
@@ -272,14 +266,12 @@ describe('Transaction using DB ', () => {
                 expect(trans.operations[2].status).toBe('Error')
 
             } catch (err) {
-                console.error('err =>', err);
                 expect(err).toBeNull()
 
             }
 
             try {
                 const rolled = await newTransaction.rollback()
-                console.log('rolled =>', rolled);
                 expect(rolled).toBeInstanceOf(Array)
                 expect(rolled.length).toBe(2)
                 expect(rolled[0].name).toBe('Nicola')
@@ -293,7 +285,6 @@ describe('Transaction using DB ', () => {
 
             try {
                 const rolled = await newTransaction.rollback()
-                console.log('rolled =>', rolled);
                 expect(rolled).toBeInstanceOf(Array)
                 expect(rolled.length).toBe(0)
 
@@ -302,6 +293,6 @@ describe('Transaction using DB ', () => {
                 expect(err).toBeNull()
             }
 
-        })
+        })*/
 
 })

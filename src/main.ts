@@ -36,6 +36,8 @@ export default class Transaction {
         oldModel: any,
         /** The id of the object */
         findId: any,
+        /** filter query */
+        filter: any,
         /** The data */
         data: any,
         /** options configuration query */
@@ -171,6 +173,7 @@ export default class Transaction {
 
         const transactionObj = {
             data,
+            filter: null,
             findId: data._id,
             model,
             modelName,
@@ -197,6 +200,7 @@ export default class Transaction {
         const model = mongoose.model(modelName);
         const transactionObj = {
             data,
+            filter: null,
             findId,
             model,
             modelName,
@@ -212,6 +216,30 @@ export default class Transaction {
     }
 
     /**
+     * Create the UpdateMany transaction and rollback states.
+     * @param modelName - The string containing the mongoose model name.
+     * @param filter - The filter query to update.
+     * @param dataObj - The object containing data to update into mongoose model.
+     */
+    public updateMany(modelName, filter, data, options = {}) {
+        const model = mongoose.model(modelName);
+        const transactionObj = {
+            data,
+            filter,
+            findId: null,
+            model,
+            modelName,
+            oldModel: null,
+            options,
+            rollbackType: "updateMany",
+            status: Status.pending,
+            type: "updateMany",
+        };
+
+        this.operations.push(transactionObj);
+    }
+
+    /**
      * Create the remove transaction and rollback states.
      * @param modelName - The string containing the mongoose model name.
      * @param findObj - The object containing data to find mongoose collection.
@@ -220,6 +248,7 @@ export default class Transaction {
         const model = mongoose.model(modelName);
         const transactionObj = {
             data: null,
+            filter: null,
             findId,
             model,
             modelName,
@@ -272,6 +301,18 @@ export default class Transaction {
                                     transaction.options
                                 )
                             })
+                        break;
+                    case "updateMany":
+                        operation = this.findByFilter(transaction.model, transaction.filter)
+                            .then((findRes) => {
+                                transaction.oldModel = findRes;
+                                return this.updateManyTransaction(
+                                    transaction.model,
+                                    transaction.filter,
+                                    transaction.data,
+                                    transaction.options
+                                )
+                            });
                         break;
                     case "remove":
                         operation = this.findByIdTransaction(transaction.model, transaction.findId)
@@ -348,6 +389,13 @@ export default class Transaction {
                         operation = this.updateTransaction(transaction.model,
                             transaction.findId, transaction.oldModel)
                         break;
+                    case "updateMany":
+                        const promises = [];
+                        transaction.oldModel.forEach((model) => {
+                            promises.push(this.updateTransaction(transaction.model, model._id.toString(), model));
+                        });
+                        operation = Promise.all(promises);
+                        break;
                     case "remove":
                         operation = this.removeTransaction(transaction.model, transaction.findId)
                         break;
@@ -380,6 +428,10 @@ export default class Transaction {
 
     private async findByIdTransaction(model, findId) {
         return await model.findOne({_id: findId}).lean().exec();
+    }
+
+    private async findByFilter(model, filter) {
+        return await model.find(filter).lean().exec();
     }
 
     private async createTransaction() {
@@ -424,6 +476,21 @@ export default class Transaction {
                 }
 
             });
+        });
+    }
+    private updateManyTransaction(model, filter, data, options = { new: false }) {
+
+        return new Promise((resolve, reject) => {
+            model.updateMany(filter, data, options)
+            .then((result) => {
+                if (!result) {
+                    return reject(this.transactionError(new Error('Entity not found'), { filter, data }));
+                }
+                return resolve(result);
+            })
+            .catch((error) => {
+                return reject(this.transactionError(error, { filter, data }))
+            })
         });
     }
 

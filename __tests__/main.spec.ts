@@ -146,6 +146,43 @@ describe("Transaction run ", () => {
     expect(final.length).toBe(2);
   });
 
+  test("updateMany", async () => {
+    const person: string = "Person";
+
+    const tonyObject: any = {
+      age: 28,
+      name: "Tony"
+    };
+
+    const irawanObject: any = {
+      age: 28,
+      name: "Irawan"
+    };
+
+    const ageObject: any = {
+      age: 32
+    };
+
+    transaction.insert(person, tonyObject);
+    transaction.insert(person, irawanObject);
+
+    transaction.updateMany(person, { age: { $in: 28 }}, { $set: { age: ageObject.age }});
+
+    const final = await transaction.run();
+
+    const agePersons: any = await Person.find({ age: ageObject.age }).exec();
+
+    expect(agePersons).toBeInstanceOf(Array);
+    expect(agePersons.length).toBe(2);
+
+    expect(agePersons[0].age).toBe(ageObject.age);
+    expect(agePersons[1].age).toBe(ageObject.age);
+
+    expect(final).toBeInstanceOf(Array);
+
+    expect(final.length).toBe(3);
+  });
+
   test("remove", async () => {
     const person: string = "Person";
 
@@ -425,6 +462,52 @@ describe("Transaction run ", () => {
       expect(results.length).toBe(1);
       expect(results[0].name).toEqual(bobObject.name);
       expect(results[0].age).toEqual(bobObject.age);
+    }
+  });
+
+  test("Fail updateMany with rollback and clean", async () => {
+    const person: string = "Person";
+
+    const tonyObject: any = {
+      age: 28,
+      name: "Tony"
+    };
+
+    const irawanObject: any = {
+      age: 28,
+      name: "Irawan"
+    };
+
+    const ageObject: any = {
+      age: 32
+    };
+
+    transaction.insert(person, tonyObject);
+    transaction.insert(person, irawanObject);
+    const insertRun = await transaction.run();
+    expect(insertRun).toBeInstanceOf(Array);
+    expect(insertRun.length).toBe(2);
+
+    transaction.clean();
+    transaction.updateMany(person, { age: { $in: 28 }}, { $set: { age: ageObject.age }});
+
+    try {
+      const final = await transaction.run();
+      const agePersons: any = await Person.find({ age: ageObject.age }).exec();
+      expect(agePersons).toBeInstanceOf(Array);
+      expect(agePersons.length).toBe(2);
+
+      expect(agePersons[0].age).toBe(ageObject.age);
+      expect(agePersons[1].age).toBe(ageObject.age);
+
+      throw new Error('Some Error');
+    } catch (error) {
+      const rollbacks = await transaction.rollback().catch(console.error);
+      const persons: any = await Person.find({}).exec();
+      expect(persons).toBeInstanceOf(Array);
+      expect(persons.length).toBe(2);
+      expect(persons[0].age).toBe(tonyObject.age);
+      expect(persons[1].age).toBe(irawanObject.age);
     }
   });
 
