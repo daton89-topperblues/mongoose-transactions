@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -38,7 +38,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose = require("mongoose");
 var mongooseTransactions_collection_1 = require("./mongooseTransactions.collection");
 /** Class representing a transaction. */
-var Transaction = (function () {
+var Transaction = /** @class */ (function () {
     /**
      * Create a transaction.
      * @param useDb - The boolean parameter allow to use transaction collection on db (default false)
@@ -103,11 +103,11 @@ var Transaction = (function () {
                     case 0:
                         _a.trys.push([0, 5, , 6]);
                         if (!(transactionId === null)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, mongooseTransactions_collection_1.default.remove({}).exec()];
+                        return [4 /*yield*/, mongooseTransactions_collection_1.default.deleteMany({}).exec()];
                     case 1:
                         _a.sent();
                         return [3 /*break*/, 4];
-                    case 2: return [4 /*yield*/, mongooseTransactions_collection_1.default.findOneAndRemove({ _id: transactionId }).exec()];
+                    case 2: return [4 /*yield*/, mongooseTransactions_collection_1.default.deleteOne({ _id: transactionId }).exec()];
                     case 3:
                         _a.sent();
                         _a.label = 4;
@@ -287,8 +287,8 @@ var Transaction = (function () {
      */
     Transaction.prototype.run = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
             var final;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -301,8 +301,8 @@ var Transaction = (function () {
                         final = [];
                         return [2 /*return*/, this.operations.reduce(function (promise, transaction, index) {
                                 return promise.then(function (result) { return __awaiter(_this, void 0, void 0, function () {
-                                    var _this = this;
                                     var operation;
+                                    var _this = this;
                                     return __generator(this, function (_a) {
                                         operation = {};
                                         switch (transaction.type) {
@@ -373,8 +373,8 @@ var Transaction = (function () {
     Transaction.prototype.rollback = function (howmany) {
         if (howmany === void 0) { howmany = this.rollbackIndex + 1; }
         return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
             var transactionsToRollback, final;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
