@@ -103,7 +103,7 @@ Clean operations:
 /**
  * Clean the transactions object to begin a new transaction on the same instance.
  */
-transaction.clean(); // clean the prevoious operation
+transaction.clean(); // clean the previous operation
 ```
 
 Full example:
