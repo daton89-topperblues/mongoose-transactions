@@ -8,8 +8,10 @@ mongoose.Promise = global.Promise
 describe('Transaction using DB ', () => {
 
     const options: any = {
-        reconnectInterval: 10,
-        reconnectTries: 10
+        useCreateIndex: true,
+        useFindAndModify: false,
+        useNewUrlParser: true,
+        useUnifiedTopology: true
     }
 
     mongoose.connection
@@ -33,8 +35,8 @@ describe('Transaction using DB ', () => {
     const Car = mongoose.model('Car', carSchema)
 
     async function dropCollections() {
-        await Person.remove({});
-        await Car.remove({});
+        await Person.deleteMany({});
+        await Car.deleteMany({});
     }
 
     /**

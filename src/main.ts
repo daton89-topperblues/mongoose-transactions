@@ -87,9 +87,9 @@ export default class Transaction {
 
         try {
             if (transactionId === null) {
-                await Model.remove({}).exec()
+                await Model.deleteMany({}).exec()
             } else {
-                await Model.findOneAndRemove({_id: transactionId}).exec()
+                await Model.deleteOne({_id: transactionId}).exec()
             }
         } catch (error) {
             throw new Error('Fail remove transaction[s] in removeDbTransaction')

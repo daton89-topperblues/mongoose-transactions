@@ -299,13 +299,13 @@ Fork project and open pull request
 
 Currently development runs with:
 
-Node.js v8.1.4
+Node.js v12.13.0
 
-Mongoose v4.11.1
+Mongoose v5.9.2
 
-Typescript v2.4.1
+Typescript v2.9.2
 
-Jest v20.0.4
+Jest v25.1.0
 
 ## Changelog
 

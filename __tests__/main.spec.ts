@@ -2,7 +2,12 @@ import Transaction from "../src/main";
 
 import * as mongoose from "mongoose";
 
-const options: any = {};
+const options: any = {
+  useCreateIndex: true,
+  useFindAndModify: false,
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+};
 
 mongoose.Promise = global.Promise;
 
@@ -36,8 +41,8 @@ const Car = mongoose.model("Car", carSchema);
 const transaction = new Transaction();
 
 async function dropCollections() {
-  await Person.remove({});
-  await Car.remove({});
+  await Person.deleteMany({});
+  await Car.deleteMany({});
 }
 
 describe("Transaction run ", () => {
