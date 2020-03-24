@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose = require("mongoose");
-var transactionSchema = new mongoose.Schema({
+exports.TransactionSchema = new mongoose.Schema({
     operations: [],
     rollbackIndex: Number,
     status: {
-        default: "pending",
+        default: 'pending',
         type: String
-    },
+    }
 });
-exports.default = mongoose.model('MongooseTransactions', transactionSchema);
+exports.TransactionModel = mongoose.model('MongooseTransactions', exports.TransactionSchema);
 //# sourceMappingURL=mongooseTransactions.collection.js.map

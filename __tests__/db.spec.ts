@@ -1,12 +1,11 @@
+import Transaction from '../src/main'
 
-import Transaction from "../src/main";
+import * as mongoose from 'mongoose'
 
-import * as mongoose from 'mongoose';
-
+// @ts-ignore
 mongoose.Promise = global.Promise
 
 describe('Transaction using DB ', () => {
-
     const options: any = {
         useCreateIndex: true,
         useFindAndModify: false,
@@ -15,10 +14,12 @@ describe('Transaction using DB ', () => {
     }
 
     mongoose.connection
-        .once('open', () => { console.log('Mongo connected!'); })
-        .on('error', (err) => console.warn('Warning', err))
+        .once('open', () => {
+            console.log('Mongo connected!')
+        })
+        .on('error', err => console.warn('Warning', err))
 
-    let transaction: any
+    let transaction: Transaction
 
     const personSchema = new mongoose.Schema({
         age: Number,
@@ -35,16 +36,19 @@ describe('Transaction using DB ', () => {
     const Car = mongoose.model('Car', carSchema)
 
     async function dropCollections() {
-        await Person.deleteMany({});
-        await Car.deleteMany({});
+        await Person.deleteMany({})
+        await Car.deleteMany({})
     }
 
     /**
      * connect to database
      */
     beforeAll(async () => {
-        await mongoose.connect(`mongodb://localhost/mongoose-transactions`, options)
-    });
+        await mongoose.connect(
+            `mongodb://localhost/mongoose-transactions`,
+            options
+        )
+    })
 
     /**
      * drop database collections
@@ -63,7 +67,7 @@ describe('Transaction using DB ', () => {
     afterAll(async () => {
         await dropCollections()
         await mongoose.connection.close()
-        console.log('connection closed');
+        console.log('connection closed')
     })
 
     /**
@@ -74,27 +78,18 @@ describe('Transaction using DB ', () => {
     })
 
     test('should create new transaction and remove it', async () => {
-
-        const person: string = 'Person'
-
         const transId = await transaction.getTransactionId()
 
         const trans = await transaction.loadDbTransaction(transId)
-
-        console.log("Transaction => ", trans)
 
         expect(trans.status).toBe('pending')
 
         await transaction.removeDbTransaction(transId)
 
-        expect(transaction.loadDbTransaction(transId))
-            .rejects
-            .toEqual(new Error('Transaction not found'));
-
+        expect(await transaction.loadDbTransaction(transId)).toBeNull()
     })
 
     test('should create transaction, insert, update and run', async () => {
-
         const person: string = 'Person'
 
         const transId = await transaction.getTransactionId()
@@ -106,7 +101,7 @@ describe('Transaction using DB ', () => {
 
         const nicolaObject: any = {
             age: 32,
-            name: 'Nicola',
+            name: 'Nicola'
         }
 
         const id = transaction.insert(person, tonyObject)
@@ -118,7 +113,6 @@ describe('Transaction using DB ', () => {
         let trans: any
 
         try {
-
             final = await transaction.run()
 
             expect(final).toBeInstanceOf(Array)
@@ -135,16 +129,13 @@ describe('Transaction using DB ', () => {
             expect(trans.operations.length).toBe(2)
             expect(trans.operations[0].status).toBe('Success')
             expect(trans.operations[1].status).toBe('Success')
-
         } catch (error) {
             // console.error('run err =>', error)
             expect(error).toBeNull()
         }
-
     })
 
     test('should create transaction, insert, update, remove(fail), run, rollback and rollback again', async () => {
-
         const person: string = 'Person'
 
         const transId = await transaction.getTransactionId()
@@ -156,7 +147,7 @@ describe('Transaction using DB ', () => {
 
         const nicolaObject: any = {
             age: 32,
-            name: 'Nicola',
+            name: 'Nicola'
         }
 
         const id = transaction.insert(person, tonyObject)
@@ -178,23 +169,21 @@ describe('Transaction using DB ', () => {
 
         try {
             const trans = await transaction.loadDbTransaction(transId)
-            console.log('trans =>', trans);
+            // console.log('trans =>', trans)
             expect(trans.status).toBe('Error')
             expect(trans.operations).toBeInstanceOf(Array)
             expect(trans.operations.length).toBe(3)
             expect(trans.operations[0].status).toBe('Success')
             expect(trans.operations[1].status).toBe('Success')
             expect(trans.operations[2].status).toBe('Error')
-
         } catch (err) {
             // console.error('err =>', err);
             expect(err).toBeNull()
-
         }
 
         try {
             const rolled = await transaction.rollback()
-            console.log('rolled =>', rolled);
+            // console.log('rolled =>', rolled)
             expect(rolled).toBeInstanceOf(Array)
             expect(rolled.length).toBe(2)
             expect(rolled[0].name).toBe('Nicola')
@@ -208,20 +197,19 @@ describe('Transaction using DB ', () => {
 
         try {
             const rolled = await transaction.rollback()
-            console.log('rolled =>', rolled);
+            // console.log('rolled =>', rolled)
             expect(rolled).toBeInstanceOf(Array)
             expect(rolled.length).toBe(0)
-
         } catch (err) {
             // console.error('roll =>', err);
             expect(err).toBeNull()
         }
-
     })
 
-    test('should create transaction, insert, update, remove(fail),'
-        + 'save operations, load operations in new Transaction instance, run and rollback', async () => {
-
+    test(
+        'should create transaction, insert, update, remove(fail),' +
+            'save operations, load operations in new Transaction instance, run and rollback',
+        async () => {
             const person: string = 'Person'
 
             const tonyObject: any = {
@@ -231,28 +219,30 @@ describe('Transaction using DB ', () => {
 
             const nicolaObject: any = {
                 age: 32,
-                name: 'Nicola',
+                name: 'Nicola'
             }
 
             const id = transaction.insert(person, tonyObject)
 
-            transaction.update(person, id, nicolaObject, { new: true })
+            transaction.update(person, id, nicolaObject, {
+                new: true
+            })
 
             const fakeId = new mongoose.Types.ObjectId()
 
             transaction.remove(person, fakeId)
 
-            const operations = transaction.getOperations();
+            const operations = transaction.getOperations()
 
-            const transId = await transaction.saveOperations();
+            const transId = await transaction.saveOperations()
 
-            const newTransaction = new Transaction(true);
+            const newTransaction = new Transaction(true)
 
-            await newTransaction.loadDbTransaction(transId);
+            await newTransaction.loadDbTransaction(transId)
 
-            const newOperations = newTransaction.getOperations();
+            const newOperations = newTransaction.getOperations()
 
-            expect(operations).toEqual(newOperations);
+            expect(operations).toEqual(newOperations)
 
             try {
                 const final = await newTransaction.run()
@@ -265,23 +255,21 @@ describe('Transaction using DB ', () => {
 
             try {
                 const trans = await newTransaction.loadDbTransaction(transId)
-                console.log('trans =>', trans);
+                // console.log('trans =>', trans)
                 expect(trans.status).toBe('Error')
                 expect(trans.operations).toBeInstanceOf(Array)
                 expect(trans.operations.length).toBe(3)
                 expect(trans.operations[0].status).toBe('Success')
                 expect(trans.operations[1].status).toBe('Success')
                 expect(trans.operations[2].status).toBe('Error')
-
             } catch (err) {
-                console.error('err =>', err);
+                console.error('err =>', err)
                 expect(err).toBeNull()
-
             }
 
             try {
                 const rolled = await newTransaction.rollback()
-                console.log('rolled =>', rolled);
+                // console.log('rolled =>', rolled)
                 expect(rolled).toBeInstanceOf(Array)
                 expect(rolled.length).toBe(2)
                 expect(rolled[0].name).toBe('Nicola')
@@ -295,15 +283,13 @@ describe('Transaction using DB ', () => {
 
             try {
                 const rolled = await newTransaction.rollback()
-                console.log('rolled =>', rolled);
+                // console.log('rolled =>', rolled)
                 expect(rolled).toBeInstanceOf(Array)
                 expect(rolled.length).toBe(0)
-
             } catch (err) {
                 // console.error('roll =>', err);
                 expect(err).toBeNull()
             }
-
-        })
-
+        }
+    )
 })

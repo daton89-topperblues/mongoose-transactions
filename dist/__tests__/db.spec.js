@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -34,10 +35,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var main_1 = require("../src/main");
 var mongoose = require("mongoose");
+// @ts-ignore
 mongoose.Promise = global.Promise;
 describe('Transaction using DB ', function () {
     var options = {
@@ -47,7 +48,9 @@ describe('Transaction using DB ', function () {
         useUnifiedTopology: true
     };
     mongoose.connection
-        .once('open', function () { console.log('Mongo connected!'); })
+        .once('open', function () {
+        console.log('Mongo connected!');
+    })
         .on('error', function (err) { return console.warn('Warning', err); });
     var transaction;
     var personSchema = new mongoose.Schema({
@@ -78,7 +81,7 @@ describe('Transaction using DB ', function () {
     /**
      * connect to database
      */
-    beforeAll(function () { return __awaiter(_this, void 0, void 0, function () {
+    beforeAll(function () { return __awaiter(void 0, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, mongoose.connect("mongodb://localhost/mongoose-transactions", options)];
@@ -92,7 +95,7 @@ describe('Transaction using DB ', function () {
      * drop database collections
      * create new Transaction using database storage
      */
-    beforeEach(function () { return __awaiter(_this, void 0, void 0, function () {
+    beforeEach(function () { return __awaiter(void 0, void 0, void 0, function () {
         var useDB;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -109,7 +112,7 @@ describe('Transaction using DB ', function () {
      * drop database collections
      * close database connection
      */
-    afterAll(function () { return __awaiter(_this, void 0, void 0, function () {
+    afterAll(function () { return __awaiter(void 0, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, dropCollections()];
@@ -126,7 +129,7 @@ describe('Transaction using DB ', function () {
     /**
      * remove transactions collection from database
      */
-    afterEach(function () { return __awaiter(_this, void 0, void 0, function () {
+    afterEach(function () { return __awaiter(void 0, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, transaction.removeDbTransaction()];
@@ -136,31 +139,29 @@ describe('Transaction using DB ', function () {
             }
         });
     }); });
-    test('should create new transaction and remove it', function () { return __awaiter(_this, void 0, void 0, function () {
-        var person, transId, trans;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    person = 'Person';
-                    return [4 /*yield*/, transaction.getTransactionId()];
+    test('should create new transaction and remove it', function () { return __awaiter(void 0, void 0, void 0, function () {
+        var transId, trans, _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4 /*yield*/, transaction.getTransactionId()];
                 case 1:
-                    transId = _a.sent();
+                    transId = _b.sent();
                     return [4 /*yield*/, transaction.loadDbTransaction(transId)];
                 case 2:
-                    trans = _a.sent();
-                    console.log("Transaction => ", trans);
+                    trans = _b.sent();
                     expect(trans.status).toBe('pending');
                     return [4 /*yield*/, transaction.removeDbTransaction(transId)];
                 case 3:
-                    _a.sent();
-                    expect(transaction.loadDbTransaction(transId))
-                        .rejects
-                        .toEqual(new Error('Transaction not found'));
+                    _b.sent();
+                    _a = expect;
+                    return [4 /*yield*/, transaction.loadDbTransaction(transId)];
+                case 4:
+                    _a.apply(void 0, [_b.sent()]).toBeNull();
                     return [2 /*return*/];
             }
         });
     }); });
-    test('should create transaction, insert, update and run', function () { return __awaiter(_this, void 0, void 0, function () {
+    test('should create transaction, insert, update and run', function () { return __awaiter(void 0, void 0, void 0, function () {
         var person, transId, tonyObject, nicolaObject, id, final, trans, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -175,7 +176,7 @@ describe('Transaction using DB ', function () {
                     };
                     nicolaObject = {
                         age: 32,
-                        name: 'Nicola',
+                        name: 'Nicola'
                     };
                     id = transaction.insert(person, tonyObject);
                     transaction.update(person, id, nicolaObject, { new: true });
@@ -209,7 +210,7 @@ describe('Transaction using DB ', function () {
             }
         });
     }); });
-    test('should create transaction, insert, update, remove(fail), run, rollback and rollback again', function () { return __awaiter(_this, void 0, void 0, function () {
+    test('should create transaction, insert, update, remove(fail), run, rollback and rollback again', function () { return __awaiter(void 0, void 0, void 0, function () {
         var person, transId, tonyObject, nicolaObject, id, fakeId, final, err_1, trans, err_2, rolled, err_3, rolled, err_4;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -224,7 +225,7 @@ describe('Transaction using DB ', function () {
                     };
                     nicolaObject = {
                         age: 32,
-                        name: 'Nicola',
+                        name: 'Nicola'
                     };
                     id = transaction.insert(person, tonyObject);
                     transaction.update(person, id, nicolaObject, { new: true });
@@ -246,10 +247,12 @@ describe('Transaction using DB ', function () {
                     return [3 /*break*/, 5];
                 case 5:
                     _a.trys.push([5, 7, , 8]);
-                    return [4 /*yield*/, transaction.loadDbTransaction(transId)];
+                    return [4 /*yield*/, transaction.loadDbTransaction(transId)
+                        // console.log('trans =>', trans)
+                    ];
                 case 6:
                     trans = _a.sent();
-                    console.log('trans =>', trans);
+                    // console.log('trans =>', trans)
                     expect(trans.status).toBe('Error');
                     expect(trans.operations).toBeInstanceOf(Array);
                     expect(trans.operations.length).toBe(3);
@@ -264,10 +267,12 @@ describe('Transaction using DB ', function () {
                     return [3 /*break*/, 8];
                 case 8:
                     _a.trys.push([8, 10, , 11]);
-                    return [4 /*yield*/, transaction.rollback()];
+                    return [4 /*yield*/, transaction.rollback()
+                        // console.log('rolled =>', rolled)
+                    ];
                 case 9:
                     rolled = _a.sent();
-                    console.log('rolled =>', rolled);
+                    // console.log('rolled =>', rolled)
                     expect(rolled).toBeInstanceOf(Array);
                     expect(rolled.length).toBe(2);
                     expect(rolled[0].name).toBe('Nicola');
@@ -282,10 +287,12 @@ describe('Transaction using DB ', function () {
                     return [3 /*break*/, 11];
                 case 11:
                     _a.trys.push([11, 13, , 14]);
-                    return [4 /*yield*/, transaction.rollback()];
+                    return [4 /*yield*/, transaction.rollback()
+                        // console.log('rolled =>', rolled)
+                    ];
                 case 12:
                     rolled = _a.sent();
-                    console.log('rolled =>', rolled);
+                    // console.log('rolled =>', rolled)
                     expect(rolled).toBeInstanceOf(Array);
                     expect(rolled.length).toBe(0);
                     return [3 /*break*/, 14];
@@ -298,8 +305,8 @@ describe('Transaction using DB ', function () {
             }
         });
     }); });
-    test('should create transaction, insert, update, remove(fail),'
-        + 'save operations, load operations in new Transaction instance, run and rollback', function () { return __awaiter(_this, void 0, void 0, function () {
+    test('should create transaction, insert, update, remove(fail),' +
+        'save operations, load operations in new Transaction instance, run and rollback', function () { return __awaiter(void 0, void 0, void 0, function () {
         var person, tonyObject, nicolaObject, id, fakeId, operations, transId, newTransaction, newOperations, final, err_5, trans, err_6, rolled, err_7, rolled, err_8;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -311,10 +318,12 @@ describe('Transaction using DB ', function () {
                     };
                     nicolaObject = {
                         age: 32,
-                        name: 'Nicola',
+                        name: 'Nicola'
                     };
                     id = transaction.insert(person, tonyObject);
-                    transaction.update(person, id, nicolaObject, { new: true });
+                    transaction.update(person, id, nicolaObject, {
+                        new: true
+                    });
                     fakeId = new mongoose.Types.ObjectId();
                     transaction.remove(person, fakeId);
                     operations = transaction.getOperations();
@@ -343,10 +352,12 @@ describe('Transaction using DB ', function () {
                     return [3 /*break*/, 6];
                 case 6:
                     _a.trys.push([6, 8, , 9]);
-                    return [4 /*yield*/, newTransaction.loadDbTransaction(transId)];
+                    return [4 /*yield*/, newTransaction.loadDbTransaction(transId)
+                        // console.log('trans =>', trans)
+                    ];
                 case 7:
                     trans = _a.sent();
-                    console.log('trans =>', trans);
+                    // console.log('trans =>', trans)
                     expect(trans.status).toBe('Error');
                     expect(trans.operations).toBeInstanceOf(Array);
                     expect(trans.operations.length).toBe(3);
@@ -361,10 +372,12 @@ describe('Transaction using DB ', function () {
                     return [3 /*break*/, 9];
                 case 9:
                     _a.trys.push([9, 11, , 12]);
-                    return [4 /*yield*/, newTransaction.rollback()];
+                    return [4 /*yield*/, newTransaction.rollback()
+                        // console.log('rolled =>', rolled)
+                    ];
                 case 10:
                     rolled = _a.sent();
-                    console.log('rolled =>', rolled);
+                    // console.log('rolled =>', rolled)
                     expect(rolled).toBeInstanceOf(Array);
                     expect(rolled.length).toBe(2);
                     expect(rolled[0].name).toBe('Nicola');
@@ -379,10 +392,12 @@ describe('Transaction using DB ', function () {
                     return [3 /*break*/, 12];
                 case 12:
                     _a.trys.push([12, 14, , 15]);
-                    return [4 /*yield*/, newTransaction.rollback()];
+                    return [4 /*yield*/, newTransaction.rollback()
+                        // console.log('rolled =>', rolled)
+                    ];
                 case 13:
                     rolled = _a.sent();
-                    console.log('rolled =>', rolled);
+                    // console.log('rolled =>', rolled)
                     expect(rolled).toBeInstanceOf(Array);
                     expect(rolled.length).toBe(0);
                     return [3 /*break*/, 15];

@@ -30,15 +30,18 @@
     "mongoose": ">=4.11.1"
   },
   "devDependencies": {
-    "@types/core-js": "^0.9.42",
-    "@types/jest": "^20.0.2",
-    "@types/node": "^8.0.11",
+    "@types/core-js": "^2.5.3",
+    "@types/jest": "^25.1.4",
+    "@types/mongoose": "^5.7.7",
+    "@types/node": "^13.9.3",
+    "core-js": "^3.6.4",
     "jest": "^25.1.0",
     "mongoose": "^5.9.2",
     "pre-commit": "^1.2.2",
+    "prettier": "^2.0.2",
     "ts-jest": "^25.2.1",
-    "tslint": "^5.5.0",
-    "typescript": "^2.9.2"
+    "tslint": "^6.1.0",
+    "typescript": "^3.8.3"
   },
   "jest": {
     "testEnvironment": "node",
@@ -54,5 +57,10 @@
     "verbose": true,
     "notify": false,
     "bail": false
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 4
   }
 }

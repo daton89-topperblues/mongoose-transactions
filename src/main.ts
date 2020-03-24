@@ -1,18 +1,12 @@
-import * as mongoose from "mongoose";
-import Model from "./mongooseTransactions.collection"
-
-/** The operations and transaction possible states */
-const enum Status {
-    pending = "Pending",
-    success = "Success",
-    error = "Error",
-    rollback = "Rollback",
-    errorRollback = "ErrorRollback"
-}
+import * as mongoose from 'mongoose'
+import {
+    TransactionModel,
+    Operation,
+    Status
+} from './mongooseTransactions.collection'
 
 /** Class representing a transaction. */
 export default class Transaction {
-
     /** Index used for retrieve the executed transaction in the run */
     private rollbackIndex = 0
 
@@ -20,29 +14,10 @@ export default class Transaction {
     private useDb: boolean = false
 
     /** The id of the current transaction document on database */
-    private transactionId: any = ""
+    private transactionId = ''
 
     /** The actions to execute on mongoose collections when transaction run is called */
-    private operations: Array<{
-        /** The transaction type to run */
-        type: string,
-        /** The transaction type to execute for rollback */
-        rollbackType: string,
-        /** The mongoose model instance */
-        model: any,
-        /** The mongoose model name */
-        modelName: string,
-        /** The mongoose model instance before transaction if exists */
-        oldModel: any,
-        /** The id of the object */
-        findId: any,
-        /** The data */
-        data: any,
-        /** options configuration query */
-        options: any,
-        /** The current status of the operation */
-        status: Status
-    }> = [];
+    private operations: Operation[] = []
 
     /**
      * Create a transaction.
@@ -52,7 +27,7 @@ export default class Transaction {
      */
     constructor(useDb = false) {
         this.useDb = useDb
-        this.transactionId = ""
+        this.transactionId = ''
     }
 
     /**
@@ -60,22 +35,23 @@ export default class Transaction {
      * @param transactionId - The id of the transaction to load.
      * @trows Error - Throws error if the transaction is not found
      */
-    public async loadDbTransaction(transactionId) {
+    public async loadDbTransaction(transactionId: string) {
+        const loadedTransaction = await TransactionModel.findOne({
+            _id: transactionId
+        })
+            .lean()
+            .exec()
 
-        const loadedTransaction: any = await Model.findOne({_id: transactionId}).lean().exec()
-        if (loadedTransaction && loadedTransaction.operations) {
-            loadedTransaction.operations.forEach((operation) => {
-                operation.model = mongoose.model(operation.modelName);
-            });
-            this.operations = loadedTransaction.operations
-            this.rollbackIndex = loadedTransaction.rollbackIndex
-            this.transactionId = transactionId
-            return loadedTransaction
-        } else {
-            throw new Error('Transaction not found')
-            // return null
-        }
+        if (!loadedTransaction) return null
 
+        loadedTransaction.operations.forEach(operation => {
+            operation.model = mongoose.model(operation.modelName)
+        })
+        this.operations = loadedTransaction.operations
+        this.rollbackIndex = loadedTransaction.rollbackIndex
+        this.transactionId = transactionId
+
+        return loadedTransaction
     }
 
     /**
@@ -84,17 +60,15 @@ export default class Transaction {
      * @param transactionId - Optional. The id of the transaction to remove (default null).
      */
     public async removeDbTransaction(transactionId = null) {
-
         try {
             if (transactionId === null) {
-                await Model.deleteMany({}).exec()
+                await TransactionModel.deleteMany({}).exec()
             } else {
-                await Model.deleteOne({_id: transactionId}).exec()
+                await TransactionModel.deleteOne({ _id: transactionId }).exec()
             }
         } catch (error) {
             throw new Error('Fail remove transaction[s] in removeDbTransaction')
         }
-
     }
 
     /**
@@ -102,11 +76,10 @@ export default class Transaction {
      * @throws Error - Throws error if the instance is not a db instance.
      */
     public async getTransactionId() {
-        if (this.transactionId === "") {
-            await this.createTransaction();
+        if (this.transactionId === '') {
+            await this.createTransaction()
         }
-        return this.transactionId;
-
+        return this.transactionId
     }
 
     /**
@@ -115,13 +88,13 @@ export default class Transaction {
      *                                  else return the elements of current transaction (default null).
      */
     public async getOperations(transactionId = null) {
-
         if (transactionId) {
-            return await Model.findOne({_id: transactionId}).lean().exec()
+            return await TransactionModel.findOne({ _id: transactionId })
+                .lean()
+                .exec()
         } else {
             return this.operations
         }
-
     }
 
     /**
@@ -130,29 +103,30 @@ export default class Transaction {
      * @return transactionId - The transaction id on database
      */
     public async saveOperations() {
-
-        if (this.transactionId === "") {
+        if (this.transactionId === '') {
             await this.createTransaction()
         }
 
-        await Model.findOneAndUpdate(this.transactionId, {
-            operations: this.operations,
-            rollbackIndex: this.rollbackIndex
-        })
+        await TransactionModel.updateOne(
+            { _id: this.transactionId },
+            {
+                operations: this.operations,
+                rollbackIndex: this.rollbackIndex
+            }
+        )
 
         return this.transactionId
-
     }
 
     /**
      * Clean the operations object to begin a new transaction on the same instance.
      */
     public async clean() {
-        this.operations = [];
+        this.operations = []
         this.rollbackIndex = 0
-        this.transactionId = ""
+        this.transactionId = ''
         if (this.useDb) {
-            this.transactionId = await this.createTransaction()
+            await this.createTransaction()
         }
     }
 
@@ -162,29 +136,32 @@ export default class Transaction {
      * @param data - The object containing data to insert into mongoose model.
      * @returns id - The id of the object to insert.
      */
-    public insert(modelName, data, options = {}) {
-        const model = mongoose.model(modelName);
+    public insert(
+        modelName: string,
+        data,
+        options = {}
+    ): mongoose.Types.ObjectId {
+        const model = mongoose.model(modelName)
 
         if (!data._id) {
-            data._id = new mongoose.Types.ObjectId();
+            data._id = new mongoose.Types.ObjectId()
         }
 
-        const transactionObj = {
+        const operation: Operation = {
             data,
             findId: data._id,
             model,
             modelName,
             oldModel: null,
             options,
-            rollbackType: "remove",
+            rollbackType: 'remove',
             status: Status.pending,
-            type: "insert",
-        };
+            type: 'insert'
+        }
 
-        this.operations.push(transactionObj);
+        this.operations.push(operation)
 
-        return data._id;
-
+        return data._id
     }
 
     /**
@@ -194,21 +171,23 @@ export default class Transaction {
      * @param dataObj - The object containing data to update into mongoose model.
      */
     public update(modelName, findId, data, options = {}) {
-        const model = mongoose.model(modelName);
-        const transactionObj = {
+        const model = mongoose.model(modelName)
+
+        const operation: Operation = {
             data,
             findId,
             model,
             modelName,
             oldModel: null,
             options,
-            rollbackType: "update",
+            rollbackType: 'update',
             status: Status.pending,
-            type: "update",
-        };
+            type: 'update'
+        }
 
-        this.operations.push(transactionObj);
+        this.operations.push(operation)
 
+        return operation
     }
 
     /**
@@ -217,21 +196,23 @@ export default class Transaction {
      * @param findObj - The object containing data to find mongoose collection.
      */
     public remove(modelName, findId, options = {}) {
-        const model = mongoose.model(modelName);
-        const transactionObj = {
+        const model = mongoose.model(modelName)
+
+        const operation: Operation = {
             data: null,
             findId,
             model,
             modelName,
             oldModel: null,
             options,
-            rollbackType: "insert",
+            rollbackType: 'insert',
             status: Status.pending,
-            type: "remove",
-        };
+            type: 'remove'
+        }
 
-        this.operations.push(transactionObj);
+        this.operations.push(operation)
 
+        return operation
     }
 
     /**
@@ -244,67 +225,72 @@ export default class Transaction {
      *                  remainingTransactions - the number of the not executed operations
      */
     public async run() {
-
-        if (this.useDb && this.transactionId === "") {
+        if (this.useDb && this.transactionId === '') {
             await this.createTransaction()
         }
 
         const final = []
 
         return this.operations.reduce((promise, transaction, index) => {
-
-            return promise.then(async (result) => {
-
+            return promise.then(async result => {
                 let operation: any = {}
 
                 switch (transaction.type) {
-                    case "insert":
-                        operation = this.insertTransaction(transaction.model, transaction.data)
-                        break;
-                    case "update":
-                        operation = this.findByIdTransaction(transaction.model, transaction.findId)
-                            .then((findRes) => {
-                                transaction.oldModel = findRes;
-                                return this.updateTransaction(
-                                    transaction.model,
-                                    transaction.findId,
-                                    transaction.data,
-                                    transaction.options
-                                )
-                            })
-                        break;
-                    case "remove":
-                        operation = this.findByIdTransaction(transaction.model, transaction.findId)
-                            .then((findRes) => {
-                                transaction.oldModel = findRes;
-                                return this.removeTransaction(transaction.model, transaction.findId)
-                            })
-                        break;
+                    case 'insert':
+                        operation = this.insertTransaction(
+                            transaction.model,
+                            transaction.data
+                        )
+                        break
+                    case 'update':
+                        operation = this.findByIdTransaction(
+                            transaction.model,
+                            transaction.findId
+                        ).then(findRes => {
+                            transaction.oldModel = findRes
+                            return this.updateTransaction(
+                                transaction.model,
+                                transaction.findId,
+                                transaction.data,
+                                transaction.options
+                            )
+                        })
+                        break
+                    case 'remove':
+                        operation = this.findByIdTransaction(
+                            transaction.model,
+                            transaction.findId
+                        ).then(findRes => {
+                            transaction.oldModel = findRes
+                            return this.removeTransaction(
+                                transaction.model,
+                                transaction.findId
+                            )
+                        })
+                        break
                 }
 
-                return operation.then(async (query) => {
-                    this.rollbackIndex = index
-                    this.updateOperationStatus(Status.success, index)
+                return operation
+                    .then(async query => {
+                        this.rollbackIndex = index
+                        this.updateOperationStatus(Status.success, index)
 
-                    if (index === this.operations.length - 1) {
-                        await this.updateDbTransaction(Status.success)
-                    }
+                        if (index === this.operations.length - 1) {
+                            await this.updateDbTransaction(Status.success)
+                        }
 
-                    final.push(query)
-                    return final
+                        final.push(query)
+                        return final
+                    })
+                    .catch(async err => {
+                        this.updateOperationStatus(Status.error, index)
 
-                }).catch(async (err) => {
-                    this.updateOperationStatus(Status.error, index)
+                        await this.updateDbTransaction(Status.error)
 
-                    await this.updateDbTransaction(Status.error)
-
-                    throw err
-                })
-
+                        throw err
+                    })
             })
-
         }, Promise.resolve([]))
-
     }
 
     /**
@@ -319,12 +305,14 @@ export default class Transaction {
      *                  remainingTransactions - the number of the not rollbacked operations
      */
     public async rollback(howmany = this.rollbackIndex + 1) {
-
-        if (this.useDb && this.transactionId === "") {
+        if (this.useDb && this.transactionId === '') {
             await this.createTransaction()
         }
 
-        let transactionsToRollback: any = this.operations.slice(0, this.rollbackIndex + 1)
+        let transactionsToRollback: any = this.operations.slice(
+            0,
+            this.rollbackIndex + 1
+        )
 
         transactionsToRollback.reverse()
 
@@ -335,66 +323,73 @@ export default class Transaction {
         const final = []
 
         return transactionsToRollback.reduce((promise, transaction, index) => {
-
-            return promise.then((result) => {
-
+            return promise.then(result => {
                 let operation: any = {}
 
                 switch (transaction.rollbackType) {
-                    case "insert":
-                        operation = this.insertTransaction(transaction.model, transaction.oldModel)
-                        break;
-                    case "update":
-                        operation = this.updateTransaction(transaction.model,
-                            transaction.findId, transaction.oldModel)
-                        break;
-                    case "remove":
-                        operation = this.removeTransaction(transaction.model, transaction.findId)
-                        break;
+                    case 'insert':
+                        operation = this.insertTransaction(
+                            transaction.model,
+                            transaction.oldModel
+                        )
+                        break
+                    case 'update':
+                        operation = this.updateTransaction(
+                            transaction.model,
+                            transaction.findId,
+                            transaction.oldModel
+                        )
+                        break
+                    case 'remove':
+                        operation = this.removeTransaction(
+                            transaction.model,
+                            transaction.findId
+                        )
+                        break
                 }
 
-                return operation.then(async (query) => {
-                    this.rollbackIndex--
+                return operation
+                    .then(async query => {
+                        this.rollbackIndex--
 
-                    this.updateOperationStatus(Status.rollback, index)
-                    if (index === this.operations.length - 1) {
-                        await this.updateDbTransaction(Status.rollback)
-                    }
+                        this.updateOperationStatus(Status.rollback, index)
+                        if (index === this.operations.length - 1) {
+                            await this.updateDbTransaction(Status.rollback)
+                        }
 
-                    final.push(query)
-                    return final
+                        final.push(query)
+                        return final
+                    })
+                    .catch(async err => {
+                        this.updateOperationStatus(Status.errorRollback, index)
+                        await this.updateDbTransaction(Status.errorRollback)
 
-                }).catch(async (err) => {
-
-                    this.updateOperationStatus(Status.errorRollback, index)
-                    await this.updateDbTransaction(Status.errorRollback)
-
-                    throw err
-                })
-
+                        throw err
+                    })
             })
-
         }, Promise.resolve([]))
-
     }
 
     private async findByIdTransaction(model, findId) {
-        return await model.findOne({_id: findId}).lean().exec();
+        return await model
+            .findOne({ _id: findId })
+            .lean()
+            .exec()
     }
 
     private async createTransaction() {
-        if (this.useDb) {
-
-            const transaction = await Model.create({
-                operations: this.operations,
-                rollbackIndex: this.rollbackIndex
-            })
-
-            this.transactionId = transaction._id
-
-        } else {
-            throw new Error("You must set useDB true in the constructor")
+        if (!this.useDb) {
+            throw new Error('You must set useDB true in the constructor')
         }
+
+        const transaction = await TransactionModel.create({
+            operations: this.operations,
+            rollbackIndex: this.rollbackIndex
+        })
+
+        this.transactionId = transaction._id
+
+        return transaction
     }
 
     private insertTransaction(model, data) {
@@ -405,47 +400,54 @@ export default class Transaction {
                 } else {
                     return resolve(result)
                 }
-            });
-        });
+            })
+        })
     }
 
     private updateTransaction(model, id, data, options = { new: false }) {
-
         return new Promise((resolve, reject) => {
-            model.findOneAndUpdate({_id: id}, data, options, (err, result) => {
-
-                if (err) {
-                    return reject(this.transactionError(err, { id, data }))
-                } else {
-                    if (!result) {
-                        return reject(this.transactionError(new Error('Entity not found'), { id, data }))
+            model.findOneAndUpdate(
+                { _id: id },
+                data,
+                options,
+                (err, result) => {
+                    if (err) {
+                        return reject(this.transactionError(err, { id, data }))
+                    } else {
+                        if (!result) {
+                            return reject(
+                                this.transactionError(
+                                    new Error('Entity not found'),
+                                    { id, data }
+                                )
+                            )
+                        }
+                        return resolve(result)
                     }
-                    return resolve(result)
                 }
-
-            });
-        });
+            )
+        })
     }
 
     private removeTransaction(model, id) {
         return new Promise((resolve, reject) => {
-
-            model.findOneAndRemove({_id: id}, (err, data) => {
-
+            model.findOneAndRemove({ _id: id }, (err, data) => {
                 if (err) {
                     return reject(this.transactionError(err, id))
                 } else {
-
                     if (data == null) {
-                        return reject(this.transactionError(new Error('Entity not found'), id))
+                        return reject(
+                            this.transactionError(
+                                new Error('Entity not found'),
+                                id
+                            )
+                        )
                     } else {
                         return resolve(data)
                     }
-
                 }
-            });
-
-        });
+            })
+        })
     }
 
     private transactionError(error, data) {
@@ -453,7 +455,8 @@ export default class Transaction {
             data,
             error,
             executedTransactions: this.rollbackIndex + 1,
-            remainingTransactions: this.operations.length - (this.rollbackIndex + 1),
+            remainingTransactions:
+                this.operations.length - (this.rollbackIndex + 1)
         }
     }
 
@@ -462,8 +465,8 @@ export default class Transaction {
     }
 
     private async updateDbTransaction(status) {
-        if (this.useDb && this.transactionId !== "") {
-            return await Model.findByIdAndUpdate(
+        if (this.useDb && this.transactionId !== '') {
+            return await TransactionModel.findByIdAndUpdate(
                 this.transactionId,
                 {
                     operations: this.operations,
@@ -474,5 +477,4 @@ export default class Transaction {
             )
         }
     }
-
 }
