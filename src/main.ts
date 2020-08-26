@@ -256,7 +256,8 @@ export default class Transaction {
                                 transaction.model,
                                 transaction.findId,
                                 transaction.data,
-                                transaction.options
+                                transaction.options,
+                                transaction.additionalQuery,
                             )
                         })
                         break

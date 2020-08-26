@@ -331,7 +331,7 @@ var Transaction = /** @class */ (function () {
                                             case 'update':
                                                 operation = this.findByIdTransaction(transaction.model, transaction.findId).then(function (findRes) {
                                                     transaction.oldModel = findRes;
-                                                    return _this.updateTransaction(transaction.model, transaction.findId, transaction.data, transaction.options);
+                                                    return _this.updateTransaction(transaction.model, transaction.findId, transaction.data, transaction.options, transaction.additionalQuery);
                                                 });
                                                 break;
                                             case 'remove':
