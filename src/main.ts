@@ -404,10 +404,10 @@ export default class Transaction {
         })
     }
 
-    private updateTransaction(model, id, data, options = { new: false }) {
+    private updateTransaction(model, id, data, options = { new: false }, additionalQuery = {}) {
         return new Promise((resolve, reject) => {
             model.findOneAndUpdate(
-                { _id: id },
+                { _id: id, ...additionalQuery },
                 data,
                 options,
                 (err, result) => {
