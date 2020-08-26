@@ -139,7 +139,8 @@ export default class Transaction {
     public insert(
         modelName: string,
         data,
-        options = {}
+        options = {},
+        additionalQuery = {}
     ): mongoose.Types.ObjectId {
         const model = mongoose.model(modelName)
 
@@ -154,6 +155,7 @@ export default class Transaction {
             modelName,
             oldModel: null,
             options,
+            additionalQuery,
             rollbackType: 'remove',
             status: Status.pending,
             type: 'insert'
@@ -170,7 +172,7 @@ export default class Transaction {
      * @param findId - The id of the object to update.
      * @param dataObj - The object containing data to update into mongoose model.
      */
-    public update(modelName, findId, data, options = {}) {
+    public update(modelName, findId, data, options = {}, additionalQuery = {}) {
         const model = mongoose.model(modelName)
 
         const operation: Operation = {
@@ -180,6 +182,7 @@ export default class Transaction {
             modelName,
             oldModel: null,
             options,
+            additionalQuery,
             rollbackType: 'update',
             status: Status.pending,
             type: 'update'
@@ -195,7 +198,7 @@ export default class Transaction {
      * @param modelName - The string containing the mongoose model name.
      * @param findObj - The object containing data to find mongoose collection.
      */
-    public remove(modelName, findId, options = {}) {
+    public remove(modelName, findId, options = {}, additionalQuery = {}) {
         const model = mongoose.model(modelName)
 
         const operation: Operation = {
@@ -205,6 +208,7 @@ export default class Transaction {
             modelName,
             oldModel: null,
             options,
+            additionalQuery,
             rollbackType: 'insert',
             status: Status.pending,
             type: 'remove'
