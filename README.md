@@ -65,6 +65,20 @@ transaction.update("modelName", id, object, options);
 transaction.remove("modelName", id);
 ```
 
+Add an operation with additional query to update operation:
+
+```js
+/**
+ * Create the findOneAndUpdate transaction with optimistic updates.
+ * @param modelName - The string containing the mongoose model name.
+ * @param findId - The id of the object to update.
+ * @param dataObj - The object containing data to update into mongoose model. { $inc: {version: 1}, $set: {...}} 
+ * @param options - The update operation options object as { new: true }
+ * @param additionalQuery - Additional query to find object to update as {version: object.version}. 
+ */
+transaction.update("modelName", id, dataObj, options, additionalQuery);
+```
+
 Run operations:
 
 ```js
