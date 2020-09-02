@@ -27,6 +27,8 @@ export interface Operation {
     /** options configuration query */
     options: any
     /** The current status of the operation */
+    additionalQuery: any
+    /** The additional query to findOneAndUpdate operation */
     status: Status
 }
 

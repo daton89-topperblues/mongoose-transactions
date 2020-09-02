@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -213,8 +224,9 @@ var Transaction = /** @class */ (function () {
      * @param data - The object containing data to insert into mongoose model.
      * @returns id - The id of the object to insert.
      */
-    Transaction.prototype.insert = function (modelName, data, options) {
+    Transaction.prototype.insert = function (modelName, data, options, additionalQuery) {
         if (options === void 0) { options = {}; }
+        if (additionalQuery === void 0) { additionalQuery = {}; }
         var model = mongoose.model(modelName);
         if (!data._id) {
             data._id = new mongoose.Types.ObjectId();
@@ -226,6 +238,7 @@ var Transaction = /** @class */ (function () {
             modelName: modelName,
             oldModel: null,
             options: options,
+            additionalQuery: additionalQuery,
             rollbackType: 'remove',
             status: "Pending" /* pending */,
             type: 'insert'
@@ -239,8 +252,9 @@ var Transaction = /** @class */ (function () {
      * @param findId - The id of the object to update.
      * @param dataObj - The object containing data to update into mongoose model.
      */
-    Transaction.prototype.update = function (modelName, findId, data, options) {
+    Transaction.prototype.update = function (modelName, findId, data, options, additionalQuery) {
         if (options === void 0) { options = {}; }
+        if (additionalQuery === void 0) { additionalQuery = {}; }
         var model = mongoose.model(modelName);
         var operation = {
             data: data,
@@ -249,6 +263,7 @@ var Transaction = /** @class */ (function () {
             modelName: modelName,
             oldModel: null,
             options: options,
+            additionalQuery: additionalQuery,
             rollbackType: 'update',
             status: "Pending" /* pending */,
             type: 'update'
@@ -261,8 +276,9 @@ var Transaction = /** @class */ (function () {
      * @param modelName - The string containing the mongoose model name.
      * @param findObj - The object containing data to find mongoose collection.
      */
-    Transaction.prototype.remove = function (modelName, findId, options) {
+    Transaction.prototype.remove = function (modelName, findId, options, additionalQuery) {
         if (options === void 0) { options = {}; }
+        if (additionalQuery === void 0) { additionalQuery = {}; }
         var model = mongoose.model(modelName);
         var operation = {
             data: null,
@@ -271,6 +287,7 @@ var Transaction = /** @class */ (function () {
             modelName: modelName,
             oldModel: null,
             options: options,
+            additionalQuery: additionalQuery,
             rollbackType: 'insert',
             status: "Pending" /* pending */,
             type: 'remove'
@@ -314,7 +331,7 @@ var Transaction = /** @class */ (function () {
                                             case 'update':
                                                 operation = this.findByIdTransaction(transaction.model, transaction.findId).then(function (findRes) {
                                                     transaction.oldModel = findRes;
-                                                    return _this.updateTransaction(transaction.model, transaction.findId, transaction.data, transaction.options);
+                                                    return _this.updateTransaction(transaction.model, transaction.findId, transaction.data, transaction.options, transaction.additionalQuery);
                                                 });
                                                 break;
                                             case 'remove':
@@ -489,11 +506,12 @@ var Transaction = /** @class */ (function () {
             });
         });
     };
-    Transaction.prototype.updateTransaction = function (model, id, data, options) {
+    Transaction.prototype.updateTransaction = function (model, id, data, options, additionalQuery) {
         var _this = this;
         if (options === void 0) { options = { new: false }; }
+        if (additionalQuery === void 0) { additionalQuery = {}; }
         return new Promise(function (resolve, reject) {
-            model.findOneAndUpdate({ _id: id }, data, options, function (err, result) {
+            model.findOneAndUpdate(__assign({ _id: id }, additionalQuery), data, options, function (err, result) {
                 if (err) {
                     return reject(_this.transactionError(err, { id: id, data: data }));
                 }

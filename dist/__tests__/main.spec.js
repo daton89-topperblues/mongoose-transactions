@@ -60,7 +60,8 @@ var personSchema = new mongoose.Schema({
             unique: true
         }
     },
-    name: String
+    name: String,
+    version: Number,
 });
 var carSchema = new mongoose.Schema({
     age: Number,
@@ -187,6 +188,46 @@ describe('Transaction run ', function () {
                     };
                     personId = transaction.insert(person, tonyObject);
                     transaction.update(person, personId, nicolaObject);
+                    return [4 /*yield*/, transaction.run()];
+                case 1:
+                    final = _a.sent();
+                    return [4 /*yield*/, Person.findOne(nicolaObject).exec()];
+                case 2:
+                    nicola = _a.sent();
+                    expect(nicola.name).toBe(nicolaObject.name);
+                    expect(nicola.age).toBe(nicolaObject.age);
+                    expect(final).toBeInstanceOf(Array);
+                    expect(final.length).toBe(2);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    test('update with additional query', function () { return __awaiter(void 0, void 0, void 0, function () {
+        var person, tonyObject, nicolaObject, personId, final, nicola;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    person = 'Person';
+                    tonyObject = {
+                        age: 28,
+                        name: 'Tony',
+                        version: 0
+                    };
+                    nicolaObject = {
+                        age: 32,
+                        name: 'Nicola',
+                        version: 1
+                    };
+                    personId = transaction.insert(person, tonyObject);
+                    transaction.update(person, personId, {
+                        $inc: {
+                            version: 1
+                        },
+                        $set: {
+                            age: 32,
+                            name: 'Nicola',
+                        }
+                    }, { version: tonyObject.version });
                     return [4 /*yield*/, transaction.run()];
                 case 1:
                     final = _a.sent();
@@ -485,6 +526,51 @@ describe('Transaction run ', function () {
                     expect(results[0].age).toEqual(bobObject.age);
                     return [3 /*break*/, 8];
                 case 8: return [2 /*return*/];
+            }
+        });
+    }); });
+    test('Fail update with additional query with rollback and clean', function () { return __awaiter(void 0, void 0, void 0, function () {
+        var person, tonyObject, personId, final, error_6, rollbacks;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    person = 'Person';
+                    tonyObject = {
+                        age: 28,
+                        name: 'Tony',
+                        version: 0
+                    };
+                    personId = transaction.insert(person, tonyObject);
+                    transaction.update(person, personId, {
+                        $inc: {
+                            version: 1
+                        },
+                        $set: {
+                            age: 32,
+                            name: 'Nicola',
+                        }
+                    }, { version: 1 });
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 5]);
+                    return [4 /*yield*/, transaction.run()];
+                case 2:
+                    final = _a.sent();
+                    return [3 /*break*/, 5];
+                case 3:
+                    error_6 = _a.sent();
+                    // expect(error).toBeNaN()
+                    expect(error_6.executedTransactions).toEqual(0);
+                    expect(error_6.remainingTransactions).toEqual(1);
+                    expect(error_6.error.message).toBe('Entity not found');
+                    expect(error_6.data.id).toEqual(personId);
+                    return [4 /*yield*/, transaction.rollback().catch(console.error)];
+                case 4:
+                    rollbacks = _a.sent();
+                    expect(rollbacks[0].name).toEqual(tonyObject.name);
+                    expect(rollbacks[0].age).toEqual(tonyObject.age);
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
             }
         });
     }); });

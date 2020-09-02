@@ -27,7 +27,8 @@ const personSchema = new mongoose.Schema({
             unique: true
         }
     },
-    name: String
+    name: String,
+    version: Number,
 })
 
 const carSchema = new mongoose.Schema({
@@ -135,6 +136,46 @@ describe('Transaction run ', () => {
         const personId = transaction.insert(person, tonyObject)
 
         transaction.update(person, personId, nicolaObject)
+
+        const final = await transaction.run()
+
+        const nicola: any = await Person.findOne(nicolaObject).exec()
+
+        expect(nicola.name).toBe(nicolaObject.name)
+
+        expect(nicola.age).toBe(nicolaObject.age)
+
+        expect(final).toBeInstanceOf(Array)
+
+        expect(final.length).toBe(2)
+    })
+
+    test('update with additional query', async () => {
+        const person: string = 'Person'
+
+        const tonyObject: any = {
+            age: 28,
+            name: 'Tony',
+            version: 0
+        }
+
+        const nicolaObject: any = {
+            age: 32,
+            name: 'Nicola',
+            version: 1
+        }
+
+        const personId = transaction.insert(person, tonyObject)
+
+        transaction.update(person, personId, {
+            $inc: {
+                version: 1
+            },
+            $set: {
+                age: 32,
+                name: 'Nicola',
+            }
+        }, {version: tonyObject.version})
 
         const final = await transaction.run()
 
@@ -430,6 +471,45 @@ describe('Transaction run ', () => {
             expect(results.length).toBe(1)
             expect(results[0].name).toEqual(bobObject.name)
             expect(results[0].age).toEqual(bobObject.age)
+        }
+    })
+
+    test('Fail update with additional query with rollback and clean', async () => {
+        const person: string = 'Person'
+
+        const tonyObject: any = {
+            age: 28,
+            name: 'Tony',
+            version: 0
+        }
+
+        const personId = transaction.insert(person, tonyObject)
+
+        transaction.update(person, personId, {
+            $inc: {
+                version: 1
+            },
+            $set: {
+                age: 32,
+                name: 'Nicola',
+            }
+        }, { version: 1 });
+        try {
+            const final = await transaction.run()
+        } catch (error) {
+            // expect(error).toBeNaN()
+
+            expect(error.executedTransactions).toEqual(0)
+
+            expect(error.remainingTransactions).toEqual(1)
+
+            expect(error.error.message).toBe('Entity not found')
+
+            expect(error.data.id).toEqual(personId)
+
+            const rollbacks = await transaction.rollback().catch(console.error)
+            expect(rollbacks[0].name).toEqual(tonyObject.name)
+            expect(rollbacks[0].age).toEqual(tonyObject.age)
         }
     })
 })
