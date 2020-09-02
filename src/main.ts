@@ -419,7 +419,7 @@ export default class Transaction {
                     if (err) {
                         return reject(this.transactionError(err, { id, data }))
                     } else {
-                        if (!result || result.length === 0) {
+                        if (!result) {
                             return reject(
                                 this.transactionError(
                                     new Error('Entity not found'),

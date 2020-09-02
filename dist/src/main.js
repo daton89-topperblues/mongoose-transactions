@@ -516,7 +516,7 @@ var Transaction = /** @class */ (function () {
                     return reject(_this.transactionError(err, { id: id, data: data }));
                 }
                 else {
-                    if (!result || result.length === 0) {
+                    if (!result) {
                         return reject(_this.transactionError(new Error('Entity not found'), { id: id, data: data }));
                     }
                     return resolve(result);
