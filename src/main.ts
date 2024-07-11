@@ -387,71 +387,44 @@ export default class Transaction {
             rollbackIndex: this.rollbackIndex
         })
 
-        this.transactionId = transaction._id
+        this.transactionId = transaction._id ? transaction._id as string : ''
 
         return transaction
     }
 
     private insertTransaction(model, data) {
-        return new Promise((resolve, reject) => {
-            model.create(data, (err, result) => {
-                if (err) {
-                    return reject(this.transactionError(err, data))
-                } else {
-                    return resolve(result)
-                }
-            })
-        })
+        return model.create(data).then(result => result).catch(err => this.transactionError(err, data))
     }
 
     private updateTransaction(model, id, data, options = { new: false }) {
-        return new Promise((resolve, reject) => {
-            model.findOneAndUpdate(
-                { _id: id },
-                data,
-                options,
-                (err, result) => {
-                    if (err) {
-                        return reject(this.transactionError(err, { id, data }))
-                    } else {
-                        if (!result) {
-                            return reject(
-                                this.transactionError(
-                                    new Error('Entity not found'),
-                                    { id, data }
-                                )
-                            )
-                        }
-                        return resolve(result)
-                    }
+        return model.findOneAndUpdate(
+            { _id: id },
+            data,
+            options)
+            .then(result => {
+                if (!result) {
+                    this.transactionError(
+                        new Error('Entity not found'),
+                        { id, data }
+                    )
                 }
-            )
-        })
+                return result
+            }).catch(err => this.transactionError(err, { id, data }))
     }
 
     private removeTransaction(model, id) {
-        return new Promise((resolve, reject) => {
-            model.findOneAndRemove({ _id: id }, (err, data) => {
-                if (err) {
-                    return reject(this.transactionError(err, id))
+        return model.findOneAndDelete({ _id: id })
+            .then(result => {
+                if (!result) {
+                    this.transactionError(new Error('Entity not found'), id)
                 } else {
-                    if (data == null) {
-                        return reject(
-                            this.transactionError(
-                                new Error('Entity not found'),
-                                id
-                            )
-                        )
-                    } else {
-                        return resolve(data)
-                    }
+                    return result
                 }
-            })
-        })
+            }).catch(err => this.transactionError(err, id))
     }
 
     private transactionError(error, data) {
-        return {
+        throw {
             data,
             error,
             executedTransactions: this.rollbackIndex + 1,

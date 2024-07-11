@@ -5,7 +5,6 @@
         "moduleResolution": "node",
         "sourceRoot": "src",
         "outDir": "dist",
-        "watch": true,
         "types": [
             "node",
             "jest",
@@ -13,7 +12,8 @@
         ],
         "sourceMap": true,
         "lib": [
-            "es2015"
+            "es2015",
+            "DOM"
         ]
     },
     "compileOnSave": true

@@ -6,13 +6,6 @@ import * as mongoose from 'mongoose'
 mongoose.Promise = global.Promise
 
 describe('Transaction using DB ', () => {
-    const options: any = {
-        useCreateIndex: true,
-        useFindAndModify: false,
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    }
-
     mongoose.connection
         .once('open', () => {
             console.log('Mongo connected!')
@@ -45,8 +38,7 @@ describe('Transaction using DB ', () => {
      */
     beforeAll(async () => {
         await mongoose.connect(
-            `mongodb://localhost/mongoose-transactions`,
-            options
+            `mongodb://localhost/mongoose-transactions`
         )
     })
 
@@ -161,7 +153,7 @@ describe('Transaction using DB ', () => {
         try {
             const final = await transaction.run()
         } catch (err) {
-            expect(err.error.message).toEqual('Entity not found')
+            expect(err.error.error.message).toEqual('Entity not found')
             expect(err.data).toEqual(fakeId)
             expect(err.executedTransactions).toEqual(2)
             expect(err.remainingTransactions).toEqual(1)
@@ -247,7 +239,7 @@ describe('Transaction using DB ', () => {
             try {
                 const final = await newTransaction.run()
             } catch (err) {
-                expect(err.error.message).toEqual('Entity not found')
+                expect(err.error.error.message).toEqual('Entity not found')
                 expect(err.data).toEqual(fakeId)
                 expect(err.executedTransactions).toEqual(2)
                 expect(err.remainingTransactions).toEqual(1)

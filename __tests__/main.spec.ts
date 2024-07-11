@@ -2,13 +2,6 @@ import Transaction from '../src/main'
 
 import * as mongoose from 'mongoose'
 
-const options: any = {
-    useCreateIndex: true,
-    useFindAndModify: false,
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}
-
 // @ts-ignore
 mongoose.Promise = global.Promise
 
@@ -52,8 +45,7 @@ describe('Transaction run ', () => {
 
     beforeAll(async () => {
         await mongoose.connect(
-            `mongodb://localhost/mongoose-transactions`,
-            options
+            `mongodb://localhost/mongoose-transactions`
         )
     })
 
@@ -213,7 +205,7 @@ describe('Transaction run ', () => {
 
             expect(error.remainingTransactions).toEqual(1)
 
-            expect(error.error.message).toBe('Entity not found')
+            expect(error.error.error.message).toBe('Entity not found')
 
             expect(error.data).toEqual(failObjectId)
         }
@@ -249,7 +241,7 @@ describe('Transaction run ', () => {
 
             expect(error.remainingTransactions).toEqual(1)
 
-            expect(error.error.message).toBe('Entity not found')
+            expect(error.error.error.message).toBe('Entity not found')
 
             expect(error.data).toEqual(failObjectId)
 
@@ -316,7 +308,7 @@ describe('Transaction run ', () => {
 
             expect(error.remainingTransactions).toEqual(1)
 
-            expect(error.error.message).toBe('Entity not found')
+            expect(error.error.error.message).toBe('Entity not found')
 
             expect(error.data).toEqual(failObjectId)
 
@@ -405,7 +397,7 @@ describe('Transaction run ', () => {
 
             expect(error.remainingTransactions).toEqual(3)
 
-            expect(error.error.message).toBe('Entity not found')
+            expect(error.error.error.message).toBe('Entity not found')
 
             expect(error.data.id).toEqual(aliceId)
             expect(error.data.data.name).toEqual('Error')

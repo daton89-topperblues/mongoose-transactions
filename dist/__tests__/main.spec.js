@@ -14,7 +14,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -38,12 +38,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var main_1 = require("../src/main");
 var mongoose = require("mongoose");
-var options = {
-    useCreateIndex: true,
-    useFindAndModify: false,
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-};
 // @ts-ignore
 mongoose.Promise = global.Promise;
 mongoose.connection
@@ -90,7 +84,7 @@ describe('Transaction run ', function () {
     beforeAll(function () { return __awaiter(void 0, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, mongoose.connect("mongodb://localhost/mongoose-transactions", options)];
+                case 0: return [4 /*yield*/, mongoose.connect("mongodb://localhost/mongoose-transactions")];
                 case 1:
                     _a.sent();
                     return [2 /*return*/];
@@ -265,7 +259,7 @@ describe('Transaction run ', function () {
                     error_2 = _a.sent();
                     expect(error_2.executedTransactions).toEqual(2);
                     expect(error_2.remainingTransactions).toEqual(1);
-                    expect(error_2.error.message).toBe('Entity not found');
+                    expect(error_2.error.error.message).toBe('Entity not found');
                     expect(error_2.data).toEqual(failObjectId);
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
@@ -302,7 +296,7 @@ describe('Transaction run ', function () {
                     error_3 = _a.sent();
                     expect(error_3.executedTransactions).toEqual(2);
                     expect(error_3.remainingTransactions).toEqual(1);
-                    expect(error_3.error.message).toBe('Entity not found');
+                    expect(error_3.error.error.message).toBe('Entity not found');
                     expect(error_3.data).toEqual(failObjectId);
                     return [4 /*yield*/, transaction
                             .rollback()
@@ -370,7 +364,7 @@ describe('Transaction run ', function () {
                     // expect(error).toBeNaN()
                     expect(error_4.executedTransactions).toEqual(3);
                     expect(error_4.remainingTransactions).toEqual(1);
-                    expect(error_4.error.message).toBe('Entity not found');
+                    expect(error_4.error.error.message).toBe('Entity not found');
                     expect(error_4.data).toEqual(failObjectId);
                     return [4 /*yield*/, transaction.rollback().catch(console.error)
                         // expect(rollbacks).toBeNaN()
@@ -459,7 +453,7 @@ describe('Transaction run ', function () {
                     // expect(error).toBeNaN()
                     expect(error_5.executedTransactions).toEqual(5);
                     expect(error_5.remainingTransactions).toEqual(3);
-                    expect(error_5.error.message).toBe('Entity not found');
+                    expect(error_5.error.error.message).toBe('Entity not found');
                     expect(error_5.data.id).toEqual(aliceId);
                     expect(error_5.data.data.name).toEqual('Error');
                     return [4 /*yield*/, transaction.rollback().catch(console.error)];

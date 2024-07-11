@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var mongoose = require("mongoose");
+exports.TransactionModel = exports.TransactionSchema = void 0;
+const mongoose = require("mongoose");
 exports.TransactionSchema = new mongoose.Schema({
     operations: [],
     rollbackIndex: Number,
@@ -10,4 +11,4 @@ exports.TransactionSchema = new mongoose.Schema({
     }
 });
 exports.TransactionModel = mongoose.model('MongooseTransactions', exports.TransactionSchema);
-//# sourceMappingURL=mongooseTransactions.collection.js.map
+// # sourceMappingURL=mongooseTransactions.collection.js.map
