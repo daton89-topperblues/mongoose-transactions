@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 const Transaction = require('./dist/src/main').default
 

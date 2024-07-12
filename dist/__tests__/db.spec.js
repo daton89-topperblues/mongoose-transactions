@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var main_1 = require("../src/main");
 var mongoose = require("mongoose");
-// @ts-ignore
+// @ts-expect-errors private variable
 mongoose.Promise = global.Promise;
 describe('Transaction using DB ', function () {
     mongoose.connection
@@ -49,11 +49,11 @@ describe('Transaction using DB ', function () {
     var transaction;
     var personSchema = new mongoose.Schema({
         age: Number,
-        name: String
+        name: String,
     });
     var carSchema = new mongoose.Schema({
         age: Number,
-        name: String
+        name: String,
     });
     var Person = mongoose.model('Person', personSchema);
     var Car = mongoose.model('Car', carSchema);
@@ -78,7 +78,7 @@ describe('Transaction using DB ', function () {
     beforeAll(function () { return __awaiter(void 0, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, mongoose.connect("mongodb://localhost/mongoose-transactions")];
+                case 0: return [4 /*yield*/, mongoose.connect('mongodb://localhost/mongoose-transactions')];
                 case 1:
                     _a.sent();
                     return [2 /*return*/];
@@ -166,11 +166,11 @@ describe('Transaction using DB ', function () {
                     transId = _a.sent();
                     tonyObject = {
                         age: 28,
-                        name: 'Tony'
+                        name: 'Tony',
                     };
                     nicolaObject = {
                         age: 32,
-                        name: 'Nicola'
+                        name: 'Nicola',
                     };
                     id = transaction.insert(person, tonyObject);
                     transaction.update(person, id, nicolaObject, { new: true });
@@ -205,7 +205,7 @@ describe('Transaction using DB ', function () {
         });
     }); });
     test('should create transaction, insert, update, remove(fail), run, rollback and rollback again', function () { return __awaiter(void 0, void 0, void 0, function () {
-        var person, transId, tonyObject, nicolaObject, id, fakeId, final, err_1, trans, err_2, rolled, err_3, rolled, err_4;
+        var person, transId, tonyObject, nicolaObject, id, fakeId, err_1, trans, err_2, rolled, err_3, rolled, err_4;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -215,11 +215,11 @@ describe('Transaction using DB ', function () {
                     transId = _a.sent();
                     tonyObject = {
                         age: 28,
-                        name: 'Tony'
+                        name: 'Tony',
                     };
                     nicolaObject = {
                         age: 32,
-                        name: 'Nicola'
+                        name: 'Nicola',
                     };
                     id = transaction.insert(person, tonyObject);
                     transaction.update(person, id, nicolaObject, { new: true });
@@ -230,7 +230,7 @@ describe('Transaction using DB ', function () {
                     _a.trys.push([2, 4, , 5]);
                     return [4 /*yield*/, transaction.run()];
                 case 3:
-                    final = _a.sent();
+                    _a.sent();
                     return [3 /*break*/, 5];
                 case 4:
                     err_1 = _a.sent();
@@ -301,22 +301,22 @@ describe('Transaction using DB ', function () {
     }); });
     test('should create transaction, insert, update, remove(fail),' +
         'save operations, load operations in new Transaction instance, run and rollback', function () { return __awaiter(void 0, void 0, void 0, function () {
-        var person, tonyObject, nicolaObject, id, fakeId, operations, transId, newTransaction, newOperations, final, err_5, trans, err_6, rolled, err_7, rolled, err_8;
+        var person, tonyObject, nicolaObject, id, fakeId, operations, transId, newTransaction, newOperations, err_5, trans, err_6, rolled, err_7, rolled, err_8;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     person = 'Person';
                     tonyObject = {
                         age: 28,
-                        name: 'Tony'
+                        name: 'Tony',
                     };
                     nicolaObject = {
                         age: 32,
-                        name: 'Nicola'
+                        name: 'Nicola',
                     };
                     id = transaction.insert(person, tonyObject);
                     transaction.update(person, id, nicolaObject, {
-                        new: true
+                        new: true,
                     });
                     fakeId = new mongoose.Types.ObjectId();
                     transaction.remove(person, fakeId);
@@ -335,7 +335,7 @@ describe('Transaction using DB ', function () {
                     _a.trys.push([3, 5, , 6]);
                     return [4 /*yield*/, newTransaction.run()];
                 case 4:
-                    final = _a.sent();
+                    _a.sent();
                     return [3 /*break*/, 6];
                 case 5:
                     err_5 = _a.sent();

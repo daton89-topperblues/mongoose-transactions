@@ -2,7 +2,7 @@ import Transaction from '../src/main'
 
 import * as mongoose from 'mongoose'
 
-// @ts-ignore
+// @ts-expect-errors private variable
 mongoose.Promise = global.Promise
 
 describe('Transaction using DB ', () => {
@@ -10,18 +10,18 @@ describe('Transaction using DB ', () => {
         .once('open', () => {
             console.log('Mongo connected!')
         })
-        .on('error', err => console.warn('Warning', err))
+        .on('error', (err) => console.warn('Warning', err))
 
-    let transaction: Transaction
+    let transaction
 
     const personSchema = new mongoose.Schema({
         age: Number,
-        name: String
+        name: String,
     })
 
     const carSchema = new mongoose.Schema({
         age: Number,
-        name: String
+        name: String,
     })
 
     const Person = mongoose.model('Person', personSchema)
@@ -37,9 +37,7 @@ describe('Transaction using DB ', () => {
      * connect to database
      */
     beforeAll(async () => {
-        await mongoose.connect(
-            `mongodb://localhost/mongoose-transactions`
-        )
+        await mongoose.connect('mongodb://localhost/mongoose-transactions')
     })
 
     /**
@@ -82,27 +80,27 @@ describe('Transaction using DB ', () => {
     })
 
     test('should create transaction, insert, update and run', async () => {
-        const person: string = 'Person'
+        const person = 'Person'
 
         const transId = await transaction.getTransactionId()
 
-        const tonyObject: any = {
+        const tonyObject = {
             age: 28,
-            name: 'Tony'
+            name: 'Tony',
         }
 
-        const nicolaObject: any = {
+        const nicolaObject = {
             age: 32,
-            name: 'Nicola'
+            name: 'Nicola',
         }
 
         const id = transaction.insert(person, tonyObject)
 
         transaction.update(person, id, nicolaObject, { new: true })
 
-        let final: any
+        let final
 
-        let trans: any
+        let trans
 
         try {
             final = await transaction.run()
@@ -128,18 +126,18 @@ describe('Transaction using DB ', () => {
     })
 
     test('should create transaction, insert, update, remove(fail), run, rollback and rollback again', async () => {
-        const person: string = 'Person'
+        const person = 'Person'
 
         const transId = await transaction.getTransactionId()
 
-        const tonyObject: any = {
+        const tonyObject = {
             age: 28,
-            name: 'Tony'
+            name: 'Tony',
         }
 
-        const nicolaObject: any = {
+        const nicolaObject = {
             age: 32,
-            name: 'Nicola'
+            name: 'Nicola',
         }
 
         const id = transaction.insert(person, tonyObject)
@@ -151,7 +149,7 @@ describe('Transaction using DB ', () => {
         transaction.remove(person, fakeId)
 
         try {
-            const final = await transaction.run()
+            await transaction.run()
         } catch (err) {
             expect(err.error.error.message).toEqual('Entity not found')
             expect(err.data).toEqual(fakeId)
@@ -202,22 +200,22 @@ describe('Transaction using DB ', () => {
         'should create transaction, insert, update, remove(fail),' +
             'save operations, load operations in new Transaction instance, run and rollback',
         async () => {
-            const person: string = 'Person'
+            const person = 'Person'
 
-            const tonyObject: any = {
+            const tonyObject = {
                 age: 28,
-                name: 'Tony'
+                name: 'Tony',
             }
 
-            const nicolaObject: any = {
+            const nicolaObject = {
                 age: 32,
-                name: 'Nicola'
+                name: 'Nicola',
             }
 
             const id = transaction.insert(person, tonyObject)
 
             transaction.update(person, id, nicolaObject, {
-                new: true
+                new: true,
             })
 
             const fakeId = new mongoose.Types.ObjectId()
@@ -237,7 +235,7 @@ describe('Transaction using DB ', () => {
             expect(operations).toEqual(newOperations)
 
             try {
-                const final = await newTransaction.run()
+                await newTransaction.run()
             } catch (err) {
                 expect(err.error.error.message).toEqual('Entity not found')
                 expect(err.data).toEqual(fakeId)

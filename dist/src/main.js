@@ -1,21 +1,21 @@
 "use strict";
-const __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
         function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const __generator = (this && this.__generator) || function (thisArg, body) {
-    let _ = { label: 0, sent() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }; let f; let y; let t; let g;
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
     return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y.return : op[0] ? y.throw || ((t = y.return) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
@@ -36,10 +36,10 @@ const __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose = require("mongoose");
-const mongooseTransactions_collection_1 = require("./mongooseTransactions.collection");
+var mongoose = require("mongoose");
+var mongooseTransactions_collection_1 = require("./mongooseTransactions.collection");
 /** Class representing a transaction. */
-const Transaction = /** @class */ (function () {
+var Transaction = /** @class */ (function () {
     /**
      * Create a transaction.
      * @param useDb - The boolean parameter allow to use transaction collection on db (default false)
@@ -66,10 +66,10 @@ const Transaction = /** @class */ (function () {
      */
     Transaction.prototype.loadDbTransaction = function (transactionId) {
         return __awaiter(this, void 0, void 0, function () {
-            let loadedTransaction;
+            var loadedTransaction;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /* yield*/, mongooseTransactions_collection_1.TransactionModel.findOne({
+                    case 0: return [4 /*yield*/, mongooseTransactions_collection_1.TransactionModel.findOne({
                             _id: transactionId
                         })
                             .lean()
@@ -77,14 +77,14 @@ const Transaction = /** @class */ (function () {
                     case 1:
                         loadedTransaction = _a.sent();
                         if (!loadedTransaction)
-                            return [2 /* return*/, null];
+                            return [2 /*return*/, null];
                         loadedTransaction.operations.forEach(function (operation) {
                             operation.model = mongoose.model(operation.modelName);
                         });
                         this.operations = loadedTransaction.operations;
                         this.rollbackIndex = loadedTransaction.rollbackIndex;
                         this.transactionId = transactionId;
-                        return [2 /* return*/, loadedTransaction];
+                        return [2 /*return*/, loadedTransaction];
                 }
             });
         });
@@ -96,26 +96,26 @@ const Transaction = /** @class */ (function () {
      */
     Transaction.prototype.removeDbTransaction = function () {
         return __awaiter(this, arguments, void 0, function (transactionId) {
-            let error_1;
+            var error_1;
             if (transactionId === void 0) { transactionId = null; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 5, , 6]);
-                        if (!(transactionId === null)) return [3 /* break*/, 2];
-                        return [4 /* yield*/, mongooseTransactions_collection_1.TransactionModel.deleteMany({}).exec()];
+                        if (!(transactionId === null)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, mongooseTransactions_collection_1.TransactionModel.deleteMany({}).exec()];
                     case 1:
                         _a.sent();
-                        return [3 /* break*/, 4];
-                    case 2: return [4 /* yield*/, mongooseTransactions_collection_1.TransactionModel.deleteOne({ _id: transactionId }).exec()];
+                        return [3 /*break*/, 4];
+                    case 2: return [4 /*yield*/, mongooseTransactions_collection_1.TransactionModel.deleteOne({ _id: transactionId }).exec()];
                     case 3:
                         _a.sent();
                         _a.label = 4;
-                    case 4: return [3 /* break*/, 6];
+                    case 4: return [3 /*break*/, 6];
                     case 5:
                         error_1 = _a.sent();
                         throw new Error('Fail remove transaction[s] in removeDbTransaction');
-                    case 6: return [2 /* return*/];
+                    case 6: return [2 /*return*/];
                 }
             });
         });
@@ -129,12 +129,12 @@ const Transaction = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!(this.transactionId === '')) return [3 /* break*/, 2];
-                        return [4 /* yield*/, this.createTransaction()];
+                        if (!(this.transactionId === '')) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.createTransaction()];
                     case 1:
                         _a.sent();
                         _a.label = 2;
-                    case 2: return [2 /* return*/, this.transactionId];
+                    case 2: return [2 /*return*/, this.transactionId];
                 }
             });
         });
@@ -150,12 +150,12 @@ const Transaction = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!transactionId) return [3 /* break*/, 2];
-                        return [4 /* yield*/, mongooseTransactions_collection_1.TransactionModel.findOne({ _id: transactionId })
+                        if (!transactionId) return [3 /*break*/, 2];
+                        return [4 /*yield*/, mongooseTransactions_collection_1.TransactionModel.findOne({ _id: transactionId })
                                 .lean()
                                 .exec()];
-                    case 1: return [2 /* return*/, _a.sent()];
-                    case 2: return [2 /* return*/, this.operations];
+                    case 1: return [2 /*return*/, _a.sent()];
+                    case 2: return [2 /*return*/, this.operations];
                 }
             });
         });
@@ -170,18 +170,18 @@ const Transaction = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!(this.transactionId === '')) return [3 /* break*/, 2];
-                        return [4 /* yield*/, this.createTransaction()];
+                        if (!(this.transactionId === '')) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.createTransaction()];
                     case 1:
                         _a.sent();
                         _a.label = 2;
-                    case 2: return [4 /* yield*/, mongooseTransactions_collection_1.TransactionModel.updateOne({ _id: this.transactionId }, {
+                    case 2: return [4 /*yield*/, mongooseTransactions_collection_1.TransactionModel.updateOne({ _id: this.transactionId }, {
                             operations: this.operations,
                             rollbackIndex: this.rollbackIndex
                         })];
                     case 3:
                         _a.sent();
-                        return [2 /* return*/, this.transactionId];
+                        return [2 /*return*/, this.transactionId];
                 }
             });
         });
@@ -197,12 +197,12 @@ const Transaction = /** @class */ (function () {
                         this.operations = [];
                         this.rollbackIndex = 0;
                         this.transactionId = '';
-                        if (!this.useDb) return [3 /* break*/, 2];
-                        return [4 /* yield*/, this.createTransaction()];
+                        if (!this.useDb) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.createTransaction()];
                     case 1:
                         _a.sent();
                         _a.label = 2;
-                    case 2: return [2 /* return*/];
+                    case 2: return [2 /*return*/];
                 }
             });
         });
@@ -215,17 +215,17 @@ const Transaction = /** @class */ (function () {
      */
     Transaction.prototype.insert = function (modelName, data, options) {
         if (options === void 0) { options = {}; }
-        const model = mongoose.model(modelName);
+        var model = mongoose.model(modelName);
         if (!data._id) {
             data._id = new mongoose.Types.ObjectId();
         }
-        const operation = {
-            data,
+        var operation = {
+            data: data,
             findId: data._id,
-            model,
-            modelName,
+            model: model,
+            modelName: modelName,
             oldModel: null,
-            options,
+            options: options,
             rollbackType: 'remove',
             status: "Pending" /* Status.pending */,
             type: 'insert'
@@ -241,14 +241,14 @@ const Transaction = /** @class */ (function () {
      */
     Transaction.prototype.update = function (modelName, findId, data, options) {
         if (options === void 0) { options = {}; }
-        const model = mongoose.model(modelName);
-        const operation = {
-            data,
-            findId,
-            model,
-            modelName,
+        var model = mongoose.model(modelName);
+        var operation = {
+            data: data,
+            findId: findId,
+            model: model,
+            modelName: modelName,
             oldModel: null,
-            options,
+            options: options,
             rollbackType: 'update',
             status: "Pending" /* Status.pending */,
             type: 'update'
@@ -263,14 +263,14 @@ const Transaction = /** @class */ (function () {
      */
     Transaction.prototype.remove = function (modelName, findId, options) {
         if (options === void 0) { options = {}; }
-        const model = mongoose.model(modelName);
-        const operation = {
+        var model = mongoose.model(modelName);
+        var operation = {
             data: null,
-            findId,
-            model,
-            modelName,
+            findId: findId,
+            model: model,
+            modelName: modelName,
             oldModel: null,
-            options,
+            options: options,
             rollbackType: 'insert',
             status: "Pending" /* Status.pending */,
             type: 'remove'
@@ -289,24 +289,23 @@ const Transaction = /** @class */ (function () {
      */
     Transaction.prototype.run = function () {
         return __awaiter(this, void 0, void 0, function () {
-            let final;
-            const _this = this;
+            var final;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!(this.useDb && this.transactionId === '')) return [3 /* break*/, 2];
-                        return [4 /* yield*/, this.createTransaction()];
+                        if (!(this.useDb && this.transactionId === '')) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.createTransaction()];
                     case 1:
                         _a.sent();
                         _a.label = 2;
                     case 2:
                         final = [];
-                        return [2 /* return*/, this.operations.reduce(function (promise, transaction, index) {
-                                return promise.then(function (result) { return __awaiter(_this, void 0, void 0, function () {
-                                    let operation;
-                                    const _this = this;
+                        return [2 /*return*/, this.operations.reduce(function (promise, transaction, index) {
+                                return promise.then(function () { return __awaiter(_this, void 0, void 0, function () {
+                                    var operation;
+                                    var _this = this;
                                     return __generator(this, function (_a) {
-                                        operation = {};
                                         switch (transaction.type) {
                                             case 'insert':
                                                 operation = this.insertTransaction(transaction.model, transaction.data);
@@ -324,21 +323,21 @@ const Transaction = /** @class */ (function () {
                                                 });
                                                 break;
                                         }
-                                        return [2 /* return*/, operation
+                                        return [2 /*return*/, operation
                                                 .then(function (query) { return __awaiter(_this, void 0, void 0, function () {
                                                 return __generator(this, function (_a) {
                                                     switch (_a.label) {
                                                         case 0:
                                                             this.rollbackIndex = index;
                                                             this.updateOperationStatus("Success" /* Status.success */, index);
-                                                            if (!(index === this.operations.length - 1)) return [3 /* break*/, 2];
-                                                            return [4 /* yield*/, this.updateDbTransaction("Success" /* Status.success */)];
+                                                            if (!(index === this.operations.length - 1)) return [3 /*break*/, 2];
+                                                            return [4 /*yield*/, this.updateDbTransaction("Success" /* Status.success */)];
                                                         case 1:
                                                             _a.sent();
                                                             _a.label = 2;
                                                         case 2:
                                                             final.push(query);
-                                                            return [2 /* return*/, final];
+                                                            return [2 /*return*/, final];
                                                     }
                                                 });
                                             }); })
@@ -347,7 +346,7 @@ const Transaction = /** @class */ (function () {
                                                     switch (_a.label) {
                                                         case 0:
                                                             this.updateOperationStatus("Error" /* Status.error */, index);
-                                                            return [4 /* yield*/, this.updateDbTransaction("Error" /* Status.error */)];
+                                                            return [4 /*yield*/, this.updateDbTransaction("Error" /* Status.error */)];
                                                         case 1:
                                                             _a.sent();
                                                             throw err;
@@ -374,14 +373,14 @@ const Transaction = /** @class */ (function () {
      */
     Transaction.prototype.rollback = function () {
         return __awaiter(this, arguments, void 0, function (howmany) {
-            let transactionsToRollback; let final;
-            const _this = this;
+            var transactionsToRollback, final;
+            var _this = this;
             if (howmany === void 0) { howmany = this.rollbackIndex + 1; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!(this.useDb && this.transactionId === '')) return [3 /* break*/, 2];
-                        return [4 /* yield*/, this.createTransaction()];
+                        if (!(this.useDb && this.transactionId === '')) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.createTransaction()];
                     case 1:
                         _a.sent();
                         _a.label = 2;
@@ -392,9 +391,9 @@ const Transaction = /** @class */ (function () {
                             transactionsToRollback = transactionsToRollback.slice(0, howmany);
                         }
                         final = [];
-                        return [2 /* return*/, transactionsToRollback.reduce(function (promise, transaction, index) {
-                                return promise.then(function (result) {
-                                    let operation = {};
+                        return [2 /*return*/, transactionsToRollback.reduce(function (promise, transaction, index) {
+                                return promise.then(function () {
+                                    var operation;
                                     switch (transaction.rollbackType) {
                                         case 'insert':
                                             operation = _this.insertTransaction(transaction.model, transaction.oldModel);
@@ -413,14 +412,14 @@ const Transaction = /** @class */ (function () {
                                                 case 0:
                                                     this.rollbackIndex--;
                                                     this.updateOperationStatus("Rollback" /* Status.rollback */, index);
-                                                    if (!(index === this.operations.length - 1)) return [3 /* break*/, 2];
-                                                    return [4 /* yield*/, this.updateDbTransaction("Rollback" /* Status.rollback */)];
+                                                    if (!(index === this.operations.length - 1)) return [3 /*break*/, 2];
+                                                    return [4 /*yield*/, this.updateDbTransaction("Rollback" /* Status.rollback */)];
                                                 case 1:
                                                     _a.sent();
                                                     _a.label = 2;
                                                 case 2:
                                                     final.push(query);
-                                                    return [2 /* return*/, final];
+                                                    return [2 /*return*/, final];
                                             }
                                         });
                                     }); })
@@ -429,7 +428,7 @@ const Transaction = /** @class */ (function () {
                                             switch (_a.label) {
                                                 case 0:
                                                     this.updateOperationStatus("ErrorRollback" /* Status.errorRollback */, index);
-                                                    return [4 /* yield*/, this.updateDbTransaction("ErrorRollback" /* Status.errorRollback */)];
+                                                    return [4 /*yield*/, this.updateDbTransaction("ErrorRollback" /* Status.errorRollback */)];
                                                 case 1:
                                                     _a.sent();
                                                     throw err;
@@ -446,53 +445,53 @@ const Transaction = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /* yield*/, model
+                    case 0: return [4 /*yield*/, model
                             .findOne({ _id: findId })
                             .lean()
                             .exec()];
-                    case 1: return [2 /* return*/, _a.sent()];
+                    case 1: return [2 /*return*/, _a.sent()];
                 }
             });
         });
     };
     Transaction.prototype.createTransaction = function () {
         return __awaiter(this, void 0, void 0, function () {
-            let transaction;
+            var transaction;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!this.useDb) {
                             throw new Error('You must set useDB true in the constructor');
                         }
-                        return [4 /* yield*/, mongooseTransactions_collection_1.TransactionModel.create({
+                        return [4 /*yield*/, mongooseTransactions_collection_1.TransactionModel.create({
                                 operations: this.operations,
                                 rollbackIndex: this.rollbackIndex
                             })];
                     case 1:
                         transaction = _a.sent();
                         this.transactionId = transaction._id ? transaction._id : '';
-                        return [2 /* return*/, transaction];
+                        return [2 /*return*/, transaction];
                 }
             });
         });
     };
     Transaction.prototype.insertTransaction = function (model, data) {
-        const _this = this;
+        var _this = this;
         return model.create(data).then(function (result) { return result; }).catch(function (err) { return _this.transactionError(err, data); });
     };
     Transaction.prototype.updateTransaction = function (model, id, data, options) {
-        const _this = this;
+        var _this = this;
         if (options === void 0) { options = { new: false }; }
         return model.findOneAndUpdate({ _id: id }, data, options)
             .then(function (result) {
             if (!result) {
-                _this.transactionError(new Error('Entity not found'), { id, data });
+                _this.transactionError(new Error('Entity not found'), { id: id, data: data });
             }
             return result;
-        }).catch(function (err) { return _this.transactionError(err, { id, data }); });
+        }).catch(function (err) { return _this.transactionError(err, { id: id, data: data }); });
     };
     Transaction.prototype.removeTransaction = function (model, id) {
-        const _this = this;
+        var _this = this;
         return model.findOneAndDelete({ _id: id })
             .then(function (result) {
             if (!result) {
@@ -505,8 +504,8 @@ const Transaction = /** @class */ (function () {
     };
     Transaction.prototype.transactionError = function (error, data) {
         throw {
-            data,
-            error,
+            data: data,
+            error: error,
             executedTransactions: this.rollbackIndex + 1,
             remainingTransactions: this.operations.length - (this.rollbackIndex + 1)
         };
@@ -519,14 +518,14 @@ const Transaction = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!(this.useDb && this.transactionId !== '')) return [3 /* break*/, 2];
-                        return [4 /* yield*/, mongooseTransactions_collection_1.TransactionModel.findByIdAndUpdate(this.transactionId, {
+                        if (!(this.useDb && this.transactionId !== '')) return [3 /*break*/, 2];
+                        return [4 /*yield*/, mongooseTransactions_collection_1.TransactionModel.findByIdAndUpdate(this.transactionId, {
                                 operations: this.operations,
                                 rollbackIndex: this.rollbackIndex,
-                                status
+                                status: status
                             }, { new: true })];
-                    case 1: return [2 /* return*/, _a.sent()];
-                    case 2: return [2 /* return*/];
+                    case 1: return [2 /*return*/, _a.sent()];
+                    case 2: return [2 /*return*/];
                 }
             });
         });
@@ -534,4 +533,4 @@ const Transaction = /** @class */ (function () {
     return Transaction;
 }());
 exports.default = Transaction;
-// # sourceMappingURL=main.js.map
+//# sourceMappingURL=main.js.map

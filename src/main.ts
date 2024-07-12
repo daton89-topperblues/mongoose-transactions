@@ -232,8 +232,8 @@ export default class Transaction {
         const final = []
 
         return this.operations.reduce((promise, transaction, index) => {
-            return promise.then(async result => {
-                let operation: any = {}
+            return promise.then(async () => {
+                let operation
 
                 switch (transaction.type) {
                     case 'insert':
@@ -309,7 +309,7 @@ export default class Transaction {
             await this.createTransaction()
         }
 
-        let transactionsToRollback: any = this.operations.slice(
+        let transactionsToRollback = this.operations.slice(
             0,
             this.rollbackIndex + 1
         )
@@ -323,8 +323,8 @@ export default class Transaction {
         const final = []
 
         return transactionsToRollback.reduce((promise, transaction, index) => {
-            return promise.then(result => {
-                let operation: any = {}
+            return promise.then(() => {
+                let operation
 
                 switch (transaction.rollbackType) {
                     case 'insert':

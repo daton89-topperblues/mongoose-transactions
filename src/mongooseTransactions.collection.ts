@@ -15,16 +15,17 @@ export interface Operation {
     /** The transaction type to execute for rollback */
     rollbackType: string
     /** The mongoose model instance */
-    model: any
+    model: mongoose.Model<unknown>
     /** The mongoose model name */
     modelName: string
     /** The mongoose model instance before transaction if exists */
-    oldModel: any
+    oldModel: mongoose.Model<unknown>
     /** The id of the object */
-    findId: any
+    findId: mongoose.Types.ObjectId
     /** The data */
-    data: any
+    data: mongoose.Document
     /** options configuration query */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options: any
     /** The current status of the operation */
     status: Status
