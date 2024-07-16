@@ -14,5 +14,5 @@ module.exports = function () {
         },
 
         testFramework: 'jest'
-    };
-};
+    }
+}

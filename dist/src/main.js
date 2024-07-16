@@ -14,7 +14,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -94,10 +94,10 @@ var Transaction = /** @class */ (function () {
      * if the transactionId param is null, remove all documents in the collection.
      * @param transactionId - Optional. The id of the transaction to remove (default null).
      */
-    Transaction.prototype.removeDbTransaction = function (transactionId) {
-        if (transactionId === void 0) { transactionId = null; }
-        return __awaiter(this, void 0, void 0, function () {
+    Transaction.prototype.removeDbTransaction = function () {
+        return __awaiter(this, arguments, void 0, function (transactionId) {
             var error_1;
+            if (transactionId === void 0) { transactionId = null; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -144,9 +144,9 @@ var Transaction = /** @class */ (function () {
      * @param transactionId - Optional. If the transaction id is passed return the elements of the transaction id
      *                                  else return the elements of current transaction (default null).
      */
-    Transaction.prototype.getOperations = function (transactionId) {
-        if (transactionId === void 0) { transactionId = null; }
-        return __awaiter(this, void 0, void 0, function () {
+    Transaction.prototype.getOperations = function () {
+        return __awaiter(this, arguments, void 0, function (transactionId) {
+            if (transactionId === void 0) { transactionId = null; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -227,7 +227,7 @@ var Transaction = /** @class */ (function () {
             oldModel: null,
             options: options,
             rollbackType: 'remove',
-            status: "Pending" /* pending */,
+            status: "Pending" /* Status.pending */,
             type: 'insert'
         };
         this.operations.push(operation);
@@ -250,7 +250,7 @@ var Transaction = /** @class */ (function () {
             oldModel: null,
             options: options,
             rollbackType: 'update',
-            status: "Pending" /* pending */,
+            status: "Pending" /* Status.pending */,
             type: 'update'
         };
         this.operations.push(operation);
@@ -272,7 +272,7 @@ var Transaction = /** @class */ (function () {
             oldModel: null,
             options: options,
             rollbackType: 'insert',
-            status: "Pending" /* pending */,
+            status: "Pending" /* Status.pending */,
             type: 'remove'
         };
         this.operations.push(operation);
@@ -302,11 +302,10 @@ var Transaction = /** @class */ (function () {
                     case 2:
                         final = [];
                         return [2 /*return*/, this.operations.reduce(function (promise, transaction, index) {
-                                return promise.then(function (result) { return __awaiter(_this, void 0, void 0, function () {
+                                return promise.then(function () { return __awaiter(_this, void 0, void 0, function () {
                                     var operation;
                                     var _this = this;
                                     return __generator(this, function (_a) {
-                                        operation = {};
                                         switch (transaction.type) {
                                             case 'insert':
                                                 operation = this.insertTransaction(transaction.model, transaction.data);
@@ -330,9 +329,9 @@ var Transaction = /** @class */ (function () {
                                                     switch (_a.label) {
                                                         case 0:
                                                             this.rollbackIndex = index;
-                                                            this.updateOperationStatus("Success" /* success */, index);
+                                                            this.updateOperationStatus("Success" /* Status.success */, index);
                                                             if (!(index === this.operations.length - 1)) return [3 /*break*/, 2];
-                                                            return [4 /*yield*/, this.updateDbTransaction("Success" /* success */)];
+                                                            return [4 /*yield*/, this.updateDbTransaction("Success" /* Status.success */)];
                                                         case 1:
                                                             _a.sent();
                                                             _a.label = 2;
@@ -346,8 +345,8 @@ var Transaction = /** @class */ (function () {
                                                 return __generator(this, function (_a) {
                                                     switch (_a.label) {
                                                         case 0:
-                                                            this.updateOperationStatus("Error" /* error */, index);
-                                                            return [4 /*yield*/, this.updateDbTransaction("Error" /* error */)];
+                                                            this.updateOperationStatus("Error" /* Status.error */, index);
+                                                            return [4 /*yield*/, this.updateDbTransaction("Error" /* Status.error */)];
                                                         case 1:
                                                             _a.sent();
                                                             throw err;
@@ -372,11 +371,11 @@ var Transaction = /** @class */ (function () {
      *                  executedTransactions - the number of rollbacked operations
      *                  remainingTransactions - the number of the not rollbacked operations
      */
-    Transaction.prototype.rollback = function (howmany) {
-        if (howmany === void 0) { howmany = this.rollbackIndex + 1; }
-        return __awaiter(this, void 0, void 0, function () {
+    Transaction.prototype.rollback = function () {
+        return __awaiter(this, arguments, void 0, function (howmany) {
             var transactionsToRollback, final;
             var _this = this;
+            if (howmany === void 0) { howmany = this.rollbackIndex + 1; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -393,8 +392,8 @@ var Transaction = /** @class */ (function () {
                         }
                         final = [];
                         return [2 /*return*/, transactionsToRollback.reduce(function (promise, transaction, index) {
-                                return promise.then(function (result) {
-                                    var operation = {};
+                                return promise.then(function () {
+                                    var operation;
                                     switch (transaction.rollbackType) {
                                         case 'insert':
                                             operation = _this.insertTransaction(transaction.model, transaction.oldModel);
@@ -412,9 +411,9 @@ var Transaction = /** @class */ (function () {
                                             switch (_a.label) {
                                                 case 0:
                                                     this.rollbackIndex--;
-                                                    this.updateOperationStatus("Rollback" /* rollback */, index);
+                                                    this.updateOperationStatus("Rollback" /* Status.rollback */, index);
                                                     if (!(index === this.operations.length - 1)) return [3 /*break*/, 2];
-                                                    return [4 /*yield*/, this.updateDbTransaction("Rollback" /* rollback */)];
+                                                    return [4 /*yield*/, this.updateDbTransaction("Rollback" /* Status.rollback */)];
                                                 case 1:
                                                     _a.sent();
                                                     _a.label = 2;
@@ -428,8 +427,8 @@ var Transaction = /** @class */ (function () {
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
-                                                    this.updateOperationStatus("ErrorRollback" /* errorRollback */, index);
-                                                    return [4 /*yield*/, this.updateDbTransaction("ErrorRollback" /* errorRollback */)];
+                                                    this.updateOperationStatus("ErrorRollback" /* Status.errorRollback */, index);
+                                                    return [4 /*yield*/, this.updateDbTransaction("ErrorRollback" /* Status.errorRollback */)];
                                                 case 1:
                                                     _a.sent();
                                                     throw err;
@@ -470,7 +469,7 @@ var Transaction = /** @class */ (function () {
                             })];
                     case 1:
                         transaction = _a.sent();
-                        this.transactionId = transaction._id;
+                        this.transactionId = transaction._id ? transaction._id : '';
                         return [2 /*return*/, transaction];
                 }
             });
@@ -478,54 +477,33 @@ var Transaction = /** @class */ (function () {
     };
     Transaction.prototype.insertTransaction = function (model, data) {
         var _this = this;
-        return new Promise(function (resolve, reject) {
-            model.create(data, function (err, result) {
-                if (err) {
-                    return reject(_this.transactionError(err, data));
-                }
-                else {
-                    return resolve(result);
-                }
-            });
-        });
+        return model.create(data).then(function (result) { return result; }).catch(function (err) { return _this.transactionError(err, data); });
     };
     Transaction.prototype.updateTransaction = function (model, id, data, options) {
         var _this = this;
         if (options === void 0) { options = { new: false }; }
-        return new Promise(function (resolve, reject) {
-            model.findOneAndUpdate({ _id: id }, data, options, function (err, result) {
-                if (err) {
-                    return reject(_this.transactionError(err, { id: id, data: data }));
-                }
-                else {
-                    if (!result) {
-                        return reject(_this.transactionError(new Error('Entity not found'), { id: id, data: data }));
-                    }
-                    return resolve(result);
-                }
-            });
-        });
+        return model.findOneAndUpdate({ _id: id }, data, options)
+            .then(function (result) {
+            if (!result) {
+                _this.transactionError(new Error('Entity not found'), { id: id, data: data });
+            }
+            return result;
+        }).catch(function (err) { return _this.transactionError(err, { id: id, data: data }); });
     };
     Transaction.prototype.removeTransaction = function (model, id) {
         var _this = this;
-        return new Promise(function (resolve, reject) {
-            model.findOneAndRemove({ _id: id }, function (err, data) {
-                if (err) {
-                    return reject(_this.transactionError(err, id));
-                }
-                else {
-                    if (data == null) {
-                        return reject(_this.transactionError(new Error('Entity not found'), id));
-                    }
-                    else {
-                        return resolve(data);
-                    }
-                }
-            });
-        });
+        return model.findOneAndDelete({ _id: id })
+            .then(function (result) {
+            if (!result) {
+                _this.transactionError(new Error('Entity not found'), id);
+            }
+            else {
+                return result;
+            }
+        }).catch(function (err) { return _this.transactionError(err, id); });
     };
     Transaction.prototype.transactionError = function (error, data) {
-        return {
+        throw {
             data: data,
             error: error,
             executedTransactions: this.rollbackIndex + 1,

@@ -14,7 +14,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -38,13 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var main_1 = require("../src/main");
 var mongoose = require("mongoose");
-var options = {
-    useCreateIndex: true,
-    useFindAndModify: false,
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-};
-// @ts-ignore
+// @ts-expect-error private variable
 mongoose.Promise = global.Promise;
 mongoose.connection
     // .once('open', () => { })
@@ -57,14 +51,14 @@ var personSchema = new mongoose.Schema({
             index: true,
             sparse: true,
             type: String,
-            unique: true
-        }
+            unique: true,
+        },
     },
-    name: String
+    name: String,
 });
 var carSchema = new mongoose.Schema({
     age: Number,
-    name: String
+    name: String,
 });
 var Person = mongoose.model('Person', personSchema);
 var Car = mongoose.model('Car', carSchema);
@@ -90,7 +84,7 @@ describe('Transaction run ', function () {
     beforeAll(function () { return __awaiter(void 0, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, mongoose.connect("mongodb://localhost/mongoose-transactions", options)];
+                case 0: return [4 /*yield*/, mongoose.connect('mongodb://localhost/mongoose-transactions')];
                 case 1:
                     _a.sent();
                     return [2 /*return*/];
@@ -119,7 +113,7 @@ describe('Transaction run ', function () {
                     person = 'Person';
                     jonathanObject = {
                         age: 18,
-                        name: 'Jonathan'
+                        name: 'Jonathan',
                     };
                     transaction.insert(person, jonathanObject);
                     return [4 /*yield*/, transaction.run().catch(console.error)];
@@ -145,12 +139,12 @@ describe('Transaction run ', function () {
                     jonathanObject = {
                         age: 18,
                         email: 'myemail@blabla.com',
-                        name: 'Jonathan'
+                        name: 'Jonathan',
                     };
                     tonyObject = {
                         age: 29,
                         email: 'myemail@blabla.com',
-                        name: 'tony'
+                        name: 'tony',
                     };
                     transaction.insert(person, jonathanObject);
                     transaction.insert(person, tonyObject);
@@ -179,11 +173,11 @@ describe('Transaction run ', function () {
                     person = 'Person';
                     tonyObject = {
                         age: 28,
-                        name: 'Tony'
+                        name: 'Tony',
                     };
                     nicolaObject = {
                         age: 32,
-                        name: 'Nicola'
+                        name: 'Nicola',
                     };
                     personId = transaction.insert(person, tonyObject);
                     transaction.update(person, personId, nicolaObject);
@@ -209,11 +203,11 @@ describe('Transaction run ', function () {
                     person = 'Person';
                     bobObject = {
                         age: 45,
-                        name: 'Bob'
+                        name: 'Bob',
                     };
                     aliceObject = {
                         age: 23,
-                        name: 'Alice'
+                        name: 'Alice',
                     };
                     personId = transaction.insert(person, bobObject);
                     transaction.update(person, personId, aliceObject);
@@ -236,18 +230,18 @@ describe('Transaction run ', function () {
         });
     }); });
     test('Fail remove', function () { return __awaiter(void 0, void 0, void 0, function () {
-        var person, bobObject, aliceObject, personId, failObjectId, final, error_2;
+        var person, bobObject, aliceObject, personId, failObjectId, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     person = 'Person';
                     bobObject = {
                         age: 45,
-                        name: 'Bob'
+                        name: 'Bob',
                     };
                     aliceObject = {
                         age: 23,
-                        name: 'Alice'
+                        name: 'Alice',
                     };
                     personId = transaction.insert(person, bobObject);
                     transaction.update(person, personId, aliceObject);
@@ -259,13 +253,13 @@ describe('Transaction run ', function () {
                     _a.trys.push([1, 3, , 4]);
                     return [4 /*yield*/, transaction.run()];
                 case 2:
-                    final = _a.sent();
+                    _a.sent();
                     return [3 /*break*/, 4];
                 case 3:
                     error_2 = _a.sent();
                     expect(error_2.executedTransactions).toEqual(2);
                     expect(error_2.remainingTransactions).toEqual(1);
-                    expect(error_2.error.message).toBe('Entity not found');
+                    expect(error_2.error.error.message).toBe('Entity not found');
                     expect(error_2.data).toEqual(failObjectId);
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
@@ -273,18 +267,18 @@ describe('Transaction run ', function () {
         });
     }); });
     test('Fail remove with rollback', function () { return __awaiter(void 0, void 0, void 0, function () {
-        var person, bobObject, aliceObject, personId, failObjectId, final, error_3, rollbackObj;
+        var person, bobObject, aliceObject, personId, failObjectId, error_3, rollbackObj;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     person = 'Person';
                     bobObject = {
                         age: 45,
-                        name: 'Bob'
+                        name: 'Bob',
                     };
                     aliceObject = {
                         age: 23,
-                        name: 'Alice'
+                        name: 'Alice',
                     };
                     personId = transaction.insert(person, bobObject);
                     transaction.update(person, personId, aliceObject);
@@ -296,13 +290,13 @@ describe('Transaction run ', function () {
                     _a.trys.push([1, 3, , 5]);
                     return [4 /*yield*/, transaction.run()];
                 case 2:
-                    final = _a.sent();
+                    _a.sent();
                     return [3 /*break*/, 5];
                 case 3:
                     error_3 = _a.sent();
                     expect(error_3.executedTransactions).toEqual(2);
                     expect(error_3.remainingTransactions).toEqual(1);
-                    expect(error_3.error.message).toBe('Entity not found');
+                    expect(error_3.error.error.message).toBe('Entity not found');
                     expect(error_3.data).toEqual(failObjectId);
                     return [4 /*yield*/, transaction
                             .rollback()
@@ -323,18 +317,18 @@ describe('Transaction run ', function () {
         });
     }); });
     test('Fail remove with rollback and clean, multiple update, run and insert', function () { return __awaiter(void 0, void 0, void 0, function () {
-        var person, bobObject, aliceObject, bobId, insertRun, bobFind, aliceId, failObjectId, final, error_4, rollbacks, bob, alice;
+        var person, bobObject, aliceObject, bobId, insertRun, bobFind, aliceId, failObjectId, error_4, rollbacks, bob, alice;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     person = 'Person';
                     bobObject = {
                         age: 45,
-                        name: 'Bob'
+                        name: 'Bob',
                     };
                     aliceObject = {
                         age: 23,
-                        name: 'Alice'
+                        name: 'Alice',
                     };
                     bobId = transaction.insert(person, bobObject);
                     return [4 /*yield*/, transaction.run()];
@@ -363,14 +357,14 @@ describe('Transaction run ', function () {
                     _a.trys.push([3, 5, , 9]);
                     return [4 /*yield*/, transaction.run()];
                 case 4:
-                    final = _a.sent();
+                    _a.sent();
                     return [3 /*break*/, 9];
                 case 5:
                     error_4 = _a.sent();
                     // expect(error).toBeNaN()
                     expect(error_4.executedTransactions).toEqual(3);
                     expect(error_4.remainingTransactions).toEqual(1);
-                    expect(error_4.error.message).toBe('Entity not found');
+                    expect(error_4.error.error.message).toBe('Entity not found');
                     expect(error_4.data).toEqual(failObjectId);
                     return [4 /*yield*/, transaction.rollback().catch(console.error)
                         // expect(rollbacks).toBeNaN()
@@ -400,26 +394,26 @@ describe('Transaction run ', function () {
         });
     }); });
     test('Fail update with rollback and clean, multiple update, run and remove', function () { return __awaiter(void 0, void 0, void 0, function () {
-        var person, bobObject, aliceObject, mariaObject, giuseppeObject, bobId, insertRun, bobFind, aliceId, mariaId, final, error_5, rollbacks, results;
+        var person, bobObject, aliceObject, mariaObject, giuseppeObject, bobId, insertRun, bobFind, aliceId, mariaId, error_5, rollbacks, results;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     person = 'Person';
                     bobObject = {
                         age: 45,
-                        name: 'Bob'
+                        name: 'Bob',
                     };
                     aliceObject = {
                         age: 23,
-                        name: 'Alice'
+                        name: 'Alice',
                     };
                     mariaObject = {
                         age: 43,
-                        name: 'Maria'
+                        name: 'Maria',
                     };
                     giuseppeObject = {
                         age: 33,
-                        name: 'Giuseppe'
+                        name: 'Giuseppe',
                     };
                     bobId = transaction.insert(person, bobObject);
                     return [4 /*yield*/, transaction.run()];
@@ -452,14 +446,14 @@ describe('Transaction run ', function () {
                     _a.trys.push([3, 5, , 8]);
                     return [4 /*yield*/, transaction.run()];
                 case 4:
-                    final = _a.sent();
+                    _a.sent();
                     return [3 /*break*/, 8];
                 case 5:
                     error_5 = _a.sent();
                     // expect(error).toBeNaN()
                     expect(error_5.executedTransactions).toEqual(5);
                     expect(error_5.remainingTransactions).toEqual(3);
-                    expect(error_5.error.message).toBe('Entity not found');
+                    expect(error_5.error.error.message).toBe('Entity not found');
                     expect(error_5.data.id).toEqual(aliceId);
                     expect(error_5.data.data.name).toEqual('Error');
                     return [4 /*yield*/, transaction.rollback().catch(console.error)];
@@ -475,9 +469,7 @@ describe('Transaction run ', function () {
                     expect(rollbacks[3].age).toEqual(bobObject.age);
                     expect(rollbacks[4].name).toEqual(aliceObject.name);
                     expect(rollbacks[4].age).toEqual(aliceObject.age);
-                    return [4 /*yield*/, Person.find({})
-                            .lean()
-                            .exec()];
+                    return [4 /*yield*/, Person.find({}).lean().exec()];
                 case 7:
                     results = _a.sent();
                     expect(results.length).toBe(1);
