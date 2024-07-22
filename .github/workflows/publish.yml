@@ -1,9 +1,17 @@
 name: publish
 
 on:
-    push:
-        branches:
-            - master
+    workflow_dispatch:
+        inputs:
+            version:
+                description: 'Version to publish'
+                type: choice
+                options:
+                    - 'patch'
+                    - 'minor'
+                    - 'major'
+                required: true
+                default: 'patch'
 
 jobs:
     publish:
