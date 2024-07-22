@@ -138,10 +138,11 @@ export default class Transaction {
      */
     public insert(
         modelName: string,
+        schema,
         data,
         options = {}
     ): mongoose.Types.ObjectId {
-        const model = mongoose.model(modelName)
+        const model = mongoose.model(modelName, schema)
 
         if (!data._id) {
             data._id = new mongoose.Types.ObjectId()
@@ -170,8 +171,8 @@ export default class Transaction {
      * @param findId - The id of the object to update.
      * @param dataObj - The object containing data to update into mongoose model.
      */
-    public update(modelName, findId, data, options = {}) {
-        const model = mongoose.model(modelName)
+    public update(modelName, schema, findId, data,  options = {}) {
+        const model = mongoose.model(modelName, schema)
 
         const operation: Operation = {
             data,
@@ -195,8 +196,8 @@ export default class Transaction {
      * @param modelName - The string containing the mongoose model name.
      * @param findObj - The object containing data to find mongoose collection.
      */
-    public remove(modelName, findId, options = {}) {
-        const model = mongoose.model(modelName)
+    public remove(modelName, schema, findId, options = {}) {
+        const model = mongoose.model(modelName, schema)
 
         const operation: Operation = {
             data: null,

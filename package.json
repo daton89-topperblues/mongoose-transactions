@@ -8,7 +8,7 @@
     "lint:fix": "eslint --fix",
     "lint:eslint": "eslint",
     "pretest": "npm run lint",
-    "test": "jest --forceExit --runInBand",
+    "test": "npm run build && jest --forceExit --runInBand",
     "build": "tsc -w false"
   },
   "pre-commit": [
@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/daton89-topperblues/mongoose-transactions#readme",
   "peerDependencies": {
-    "mongoose": ">=7.0.0"
+    "mongoose": "^8"
   },
   "devDependencies": {
     "@eslint/js": "^8.57.0",

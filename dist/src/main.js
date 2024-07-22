@@ -213,9 +213,9 @@ var Transaction = /** @class */ (function () {
      * @param data - The object containing data to insert into mongoose model.
      * @returns id - The id of the object to insert.
      */
-    Transaction.prototype.insert = function (modelName, data, options) {
+    Transaction.prototype.insert = function (modelName, schema, data, options) {
         if (options === void 0) { options = {}; }
-        var model = mongoose.model(modelName);
+        var model = mongoose.model(modelName, schema);
         if (!data._id) {
             data._id = new mongoose.Types.ObjectId();
         }
@@ -239,9 +239,9 @@ var Transaction = /** @class */ (function () {
      * @param findId - The id of the object to update.
      * @param dataObj - The object containing data to update into mongoose model.
      */
-    Transaction.prototype.update = function (modelName, findId, data, options) {
+    Transaction.prototype.update = function (modelName, schema, findId, data, options) {
         if (options === void 0) { options = {}; }
-        var model = mongoose.model(modelName);
+        var model = mongoose.model(modelName, schema);
         var operation = {
             data: data,
             findId: findId,
@@ -261,9 +261,9 @@ var Transaction = /** @class */ (function () {
      * @param modelName - The string containing the mongoose model name.
      * @param findObj - The object containing data to find mongoose collection.
      */
-    Transaction.prototype.remove = function (modelName, findId, options) {
+    Transaction.prototype.remove = function (modelName, schema, findId, options) {
         if (options === void 0) { options = {}; }
-        var model = mongoose.model(modelName);
+        var model = mongoose.model(modelName, schema);
         var operation = {
             data: null,
             findId: findId,
