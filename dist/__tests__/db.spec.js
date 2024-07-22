@@ -172,8 +172,8 @@ describe('Transaction using DB ', function () {
                         age: 32,
                         name: 'Nicola',
                     };
-                    id = transaction.insert(person, tonyObject);
-                    transaction.update(person, id, nicolaObject, { new: true });
+                    id = transaction.insert(person, personSchema, tonyObject);
+                    transaction.update(person, personSchema, id, nicolaObject, { new: true });
                     _a.label = 2;
                 case 2:
                     _a.trys.push([2, 5, , 6]);
@@ -221,10 +221,10 @@ describe('Transaction using DB ', function () {
                         age: 32,
                         name: 'Nicola',
                     };
-                    id = transaction.insert(person, tonyObject);
-                    transaction.update(person, id, nicolaObject, { new: true });
+                    id = transaction.insert(person, personSchema, tonyObject);
+                    transaction.update(person, personSchema, id, nicolaObject, { new: true });
                     fakeId = new mongoose.Types.ObjectId();
-                    transaction.remove(person, fakeId);
+                    transaction.remove(person, personSchema, fakeId);
                     _a.label = 2;
                 case 2:
                     _a.trys.push([2, 4, , 5]);
@@ -314,12 +314,12 @@ describe('Transaction using DB ', function () {
                         age: 32,
                         name: 'Nicola',
                     };
-                    id = transaction.insert(person, tonyObject);
-                    transaction.update(person, id, nicolaObject, {
+                    id = transaction.insert(person, personSchema, tonyObject);
+                    transaction.update(person, personSchema, id, nicolaObject, {
                         new: true,
                     });
                     fakeId = new mongoose.Types.ObjectId();
-                    transaction.remove(person, fakeId);
+                    transaction.remove(person, personSchema, fakeId);
                     operations = transaction.getOperations();
                     return [4 /*yield*/, transaction.saveOperations()];
                 case 1:

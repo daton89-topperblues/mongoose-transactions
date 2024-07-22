@@ -94,9 +94,9 @@ describe('Transaction using DB ', () => {
             name: 'Nicola',
         }
 
-        const id = transaction.insert(person, tonyObject)
+        const id = transaction.insert(person, personSchema, tonyObject)
 
-        transaction.update(person, id, nicolaObject, { new: true })
+        transaction.update(person, personSchema, id, nicolaObject, { new: true })
 
         let final
 
@@ -140,13 +140,13 @@ describe('Transaction using DB ', () => {
             name: 'Nicola',
         }
 
-        const id = transaction.insert(person, tonyObject)
+        const id = transaction.insert(person, personSchema, tonyObject)
 
-        transaction.update(person, id, nicolaObject, { new: true })
+        transaction.update(person, personSchema, id, nicolaObject, { new: true })
 
         const fakeId = new mongoose.Types.ObjectId()
 
-        transaction.remove(person, fakeId)
+        transaction.remove(person, personSchema, fakeId)
 
         try {
             await transaction.run()
@@ -212,15 +212,15 @@ describe('Transaction using DB ', () => {
                 name: 'Nicola',
             }
 
-            const id = transaction.insert(person, tonyObject)
+            const id = transaction.insert(person, personSchema, tonyObject)
 
-            transaction.update(person, id, nicolaObject, {
+            transaction.update(person, personSchema, id, nicolaObject, {
                 new: true,
             })
 
             const fakeId = new mongoose.Types.ObjectId()
 
-            transaction.remove(person, fakeId)
+            transaction.remove(person, personSchema, fakeId)
 
             const operations = transaction.getOperations()
 

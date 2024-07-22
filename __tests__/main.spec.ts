@@ -64,7 +64,7 @@ describe('Transaction run ', () => {
             name: 'Jonathan',
         }
 
-        transaction.insert(person, jonathanObject)
+        transaction.insert(person, personSchema, jonathanObject)
 
         const final = await transaction.run().catch(console.error)
 
@@ -94,9 +94,9 @@ describe('Transaction run ', () => {
             name: 'tony',
         }
 
-        transaction.insert(person, jonathanObject)
+        transaction.insert(person, personSchema, jonathanObject)
 
-        transaction.insert(person, tonyObject)
+        transaction.insert(person, personSchema, tonyObject)
 
         try {
             const final = await transaction.run()
@@ -122,9 +122,9 @@ describe('Transaction run ', () => {
             name: 'Nicola',
         }
 
-        const personId = transaction.insert(person, tonyObject)
+        const personId = transaction.insert(person, personSchema, tonyObject)
 
-        transaction.update(person, personId, nicolaObject)
+        transaction.update(person, personSchema, personId, nicolaObject)
 
         const final = await transaction.run()
 
@@ -152,11 +152,11 @@ describe('Transaction run ', () => {
             name: 'Alice',
         }
 
-        const personId = transaction.insert(person, bobObject)
+        const personId = transaction.insert(person, personSchema, bobObject)
 
-        transaction.update(person, personId, aliceObject)
+        transaction.update(person, personSchema, personId, aliceObject)
 
-        transaction.remove(person, personId)
+        transaction.remove(person, personSchema, personId)
 
         const final = await transaction.run()
 
@@ -186,13 +186,13 @@ describe('Transaction run ', () => {
             name: 'Alice',
         }
 
-        const personId = transaction.insert(person, bobObject)
+        const personId = transaction.insert(person, personSchema, bobObject)
 
-        transaction.update(person, personId, aliceObject)
+        transaction.update(person, personSchema, personId, aliceObject)
 
         const failObjectId = new mongoose.Types.ObjectId()
 
-        transaction.remove(person, failObjectId)
+        transaction.remove(person, personSchema, failObjectId)
 
         expect(personId).not.toEqual(failObjectId)
 
@@ -222,13 +222,13 @@ describe('Transaction run ', () => {
             name: 'Alice',
         }
 
-        const personId = transaction.insert(person, bobObject)
+        const personId = transaction.insert(person, personSchema, bobObject)
 
-        transaction.update(person, personId, aliceObject)
+        transaction.update(person, personSchema, personId, aliceObject)
 
         const failObjectId = new mongoose.Types.ObjectId()
 
-        transaction.remove(person, failObjectId)
+        transaction.remove(person, personSchema, failObjectId)
 
         expect(personId).not.toEqual(failObjectId)
 
@@ -269,7 +269,7 @@ describe('Transaction run ', () => {
             name: 'Alice',
         }
 
-        const bobId = transaction.insert(person, bobObject)
+        const bobId = transaction.insert(person, personSchema, bobObject)
 
         const insertRun = await transaction.run()
 
@@ -281,18 +281,18 @@ describe('Transaction run ', () => {
 
         transaction.clean()
 
-        const aliceId = transaction.insert(person, aliceObject)
+        const aliceId = transaction.insert(person, personSchema, aliceObject)
 
         expect(bobId).not.toEqual(aliceId)
 
         // Invert bob and alice
-        transaction.update(person, bobId, { name: 'Maria' })
+        transaction.update(person, personSchema, bobId, { name: 'Maria' })
 
-        transaction.update(person, aliceId, { name: 'Giuseppe' })
+        transaction.update(person, personSchema, aliceId, { name: 'Giuseppe' })
 
         const failObjectId = new mongoose.Types.ObjectId()
         // ERROR REMOVE
-        transaction.remove(person, failObjectId)
+        transaction.remove(person, personSchema, failObjectId)
 
         expect(bobId).not.toEqual(failObjectId)
         expect(aliceId).not.toEqual(failObjectId)
@@ -353,7 +353,7 @@ describe('Transaction run ', () => {
             name: 'Giuseppe',
         }
 
-        const bobId = transaction.insert(person, bobObject)
+        const bobId = transaction.insert(person, personSchema, bobObject)
 
         const insertRun = await transaction.run()
 
@@ -365,26 +365,26 @@ describe('Transaction run ', () => {
 
         transaction.clean()
 
-        const aliceId = transaction.insert(person, aliceObject)
+        const aliceId = transaction.insert(person, personSchema, aliceObject)
 
         expect(bobId).not.toEqual(aliceId)
 
-        transaction.remove(person, bobId)
-        transaction.remove(person, aliceId)
+        transaction.remove(person, personSchema, bobId)
+        transaction.remove(person, personSchema, aliceId)
 
-        const mariaId = transaction.insert(person, mariaObject)
+        const mariaId = transaction.insert(person, personSchema, mariaObject)
         expect(mariaId).not.toEqual(bobId)
         expect(mariaId).not.toEqual(aliceId)
 
         // Update maria
-        transaction.update(person, mariaId, giuseppeObject)
+        transaction.update(person, personSchema, mariaId, giuseppeObject)
 
         // ERROR UPDATE
-        transaction.update(person, aliceId, { name: 'Error' })
+        transaction.update(person, personSchema, aliceId, { name: 'Error' })
 
         // unreachable transactions
-        transaction.update(person, mariaId, { name: 'unreachable' })
-        transaction.insert(person, { name: 'unreachable' })
+        transaction.update(person, personSchema, mariaId, { name: 'unreachable' })
+        transaction.insert(person, personSchema, { name: 'unreachable' })
 
         try {
             await transaction.run()

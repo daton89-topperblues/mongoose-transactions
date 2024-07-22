@@ -115,7 +115,7 @@ describe('Transaction run ', function () {
                         age: 18,
                         name: 'Jonathan',
                     };
-                    transaction.insert(person, jonathanObject);
+                    transaction.insert(person, personSchema, jonathanObject);
                     return [4 /*yield*/, transaction.run().catch(console.error)];
                 case 1:
                     final = _a.sent();
@@ -146,8 +146,8 @@ describe('Transaction run ', function () {
                         email: 'myemail@blabla.com',
                         name: 'tony',
                     };
-                    transaction.insert(person, jonathanObject);
-                    transaction.insert(person, tonyObject);
+                    transaction.insert(person, personSchema, jonathanObject);
+                    transaction.insert(person, personSchema, tonyObject);
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
@@ -179,8 +179,8 @@ describe('Transaction run ', function () {
                         age: 32,
                         name: 'Nicola',
                     };
-                    personId = transaction.insert(person, tonyObject);
-                    transaction.update(person, personId, nicolaObject);
+                    personId = transaction.insert(person, personSchema, tonyObject);
+                    transaction.update(person, personSchema, personId, nicolaObject);
                     return [4 /*yield*/, transaction.run()];
                 case 1:
                     final = _a.sent();
@@ -209,9 +209,9 @@ describe('Transaction run ', function () {
                         age: 23,
                         name: 'Alice',
                     };
-                    personId = transaction.insert(person, bobObject);
-                    transaction.update(person, personId, aliceObject);
-                    transaction.remove(person, personId);
+                    personId = transaction.insert(person, personSchema, bobObject);
+                    transaction.update(person, personSchema, personId, aliceObject);
+                    transaction.remove(person, personSchema, personId);
                     return [4 /*yield*/, transaction.run()];
                 case 1:
                     final = _a.sent();
@@ -243,10 +243,10 @@ describe('Transaction run ', function () {
                         age: 23,
                         name: 'Alice',
                     };
-                    personId = transaction.insert(person, bobObject);
-                    transaction.update(person, personId, aliceObject);
+                    personId = transaction.insert(person, personSchema, bobObject);
+                    transaction.update(person, personSchema, personId, aliceObject);
                     failObjectId = new mongoose.Types.ObjectId();
-                    transaction.remove(person, failObjectId);
+                    transaction.remove(person, personSchema, failObjectId);
                     expect(personId).not.toEqual(failObjectId);
                     _a.label = 1;
                 case 1:
@@ -280,10 +280,10 @@ describe('Transaction run ', function () {
                         age: 23,
                         name: 'Alice',
                     };
-                    personId = transaction.insert(person, bobObject);
-                    transaction.update(person, personId, aliceObject);
+                    personId = transaction.insert(person, personSchema, bobObject);
+                    transaction.update(person, personSchema, personId, aliceObject);
                     failObjectId = new mongoose.Types.ObjectId();
-                    transaction.remove(person, failObjectId);
+                    transaction.remove(person, personSchema, failObjectId);
                     expect(personId).not.toEqual(failObjectId);
                     _a.label = 1;
                 case 1:
@@ -330,7 +330,7 @@ describe('Transaction run ', function () {
                         age: 23,
                         name: 'Alice',
                     };
-                    bobId = transaction.insert(person, bobObject);
+                    bobId = transaction.insert(person, personSchema, bobObject);
                     return [4 /*yield*/, transaction.run()];
                 case 1:
                     insertRun = _a.sent();
@@ -342,14 +342,14 @@ describe('Transaction run ', function () {
                     expect(insertRun).toBeInstanceOf(Array);
                     expect(insertRun.length).toBe(1);
                     transaction.clean();
-                    aliceId = transaction.insert(person, aliceObject);
+                    aliceId = transaction.insert(person, personSchema, aliceObject);
                     expect(bobId).not.toEqual(aliceId);
                     // Invert bob and alice
-                    transaction.update(person, bobId, { name: 'Maria' });
-                    transaction.update(person, aliceId, { name: 'Giuseppe' });
+                    transaction.update(person, personSchema, bobId, { name: 'Maria' });
+                    transaction.update(person, personSchema, aliceId, { name: 'Giuseppe' });
                     failObjectId = new mongoose.Types.ObjectId();
                     // ERROR REMOVE
-                    transaction.remove(person, failObjectId);
+                    transaction.remove(person, personSchema, failObjectId);
                     expect(bobId).not.toEqual(failObjectId);
                     expect(aliceId).not.toEqual(failObjectId);
                     _a.label = 3;
@@ -415,7 +415,7 @@ describe('Transaction run ', function () {
                         age: 33,
                         name: 'Giuseppe',
                     };
-                    bobId = transaction.insert(person, bobObject);
+                    bobId = transaction.insert(person, personSchema, bobObject);
                     return [4 /*yield*/, transaction.run()];
                 case 1:
                     insertRun = _a.sent();
@@ -427,20 +427,20 @@ describe('Transaction run ', function () {
                     expect(insertRun).toBeInstanceOf(Array);
                     expect(insertRun.length).toBe(1);
                     transaction.clean();
-                    aliceId = transaction.insert(person, aliceObject);
+                    aliceId = transaction.insert(person, personSchema, aliceObject);
                     expect(bobId).not.toEqual(aliceId);
-                    transaction.remove(person, bobId);
-                    transaction.remove(person, aliceId);
-                    mariaId = transaction.insert(person, mariaObject);
+                    transaction.remove(person, personSchema, bobId);
+                    transaction.remove(person, personSchema, aliceId);
+                    mariaId = transaction.insert(person, personSchema, mariaObject);
                     expect(mariaId).not.toEqual(bobId);
                     expect(mariaId).not.toEqual(aliceId);
                     // Update maria
-                    transaction.update(person, mariaId, giuseppeObject);
+                    transaction.update(person, personSchema, mariaId, giuseppeObject);
                     // ERROR UPDATE
-                    transaction.update(person, aliceId, { name: 'Error' });
+                    transaction.update(person, personSchema, aliceId, { name: 'Error' });
                     // unreachable transactions
-                    transaction.update(person, mariaId, { name: 'unreachable' });
-                    transaction.insert(person, { name: 'unreachable' });
+                    transaction.update(person, personSchema, mariaId, { name: 'unreachable' });
+                    transaction.insert(person, personSchema, { name: 'unreachable' });
                     _a.label = 3;
                 case 3:
                     _a.trys.push([3, 5, , 8]);
