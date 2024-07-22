@@ -1,17 +1,9 @@
 name: publish
 
 on:
-    workflow_dispatch:
-        inputs:
-            version:
-                description: 'Version to publish'
-                type: choice
-                options:
-                    - 'patch'
-                    - 'minor'
-                    - 'major'
-                required: true
-                default: 'patch'
+    push:
+        tags:
+            - 'v*.*.*' # This triggers the workflow for tags matching the pattern v*.*.*
 
 jobs:
     publish:
@@ -30,4 +22,6 @@ jobs:
 
             - run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" > ~/.npmrc
 
-            - run: npm publish ${{ inputs.version}}
+            - run: npm publish
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
